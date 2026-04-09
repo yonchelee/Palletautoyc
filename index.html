@@ -1492,13 +1492,18 @@ function drawSleeveUnfold(innerW, innerD, h, thick, seam) {
     ctx.strokeRect(x, oy, ws, hs);
 
     // 라벨
-    ctx.fillStyle = '#222';
-    ctx.font = `bold ${Math.max(9, ws*0.08)}px sans-serif`;
+    const fs1 = Math.min(14, Math.max(7, ws * 0.07));
+    const fs2 = Math.min(12, Math.max(6, ws * 0.06));
+    const gap = Math.max(6, fs1 * 0.7);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(LABELS[i], x + ws/2, oy + hs/2 - 8);
-    ctx.font = `${Math.max(8, ws*0.07)}px 'DM Mono',monospace`;
-    ctx.fillStyle = '#000';
-    ctx.fillText(`${fw.toFixed(0)}mm`, x + ws/2, oy + hs/2 + 8);
+    if (ws > 30) {
+      ctx.fillStyle = '#222';
+      ctx.font = `bold ${fs1}px sans-serif`;
+      ctx.fillText(LABELS[i], x + ws/2, oy + hs/2 - gap);
+      ctx.font = `${fs2}px 'DM Mono',monospace`;
+      ctx.fillStyle = '#000';
+      ctx.fillText(`${fw.toFixed(0)}mm`, x + ws/2, oy + hs/2 + gap);
+    }
     x += ws;
   });
 
@@ -1510,9 +1515,9 @@ function drawSleeveUnfold(innerW, innerD, h, thick, seam) {
   ctx.strokeStyle = '#CCC';
   ctx.strokeRect(x, oy, seamW, hs);
   ctx.setLineDash([]);
-  ctx.fillStyle = '#AAA'; ctx.font = `9px sans-serif`;
+  ctx.fillStyle = '#AAA'; ctx.font = `${Math.min(9, Math.max(6, seamW*0.25))}px sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('이음매', x + seamW/2, oy + hs/2);
+  if (seamW > 20) ctx.fillText('이음매', x + seamW/2, oy + hs/2);
 
   // 높이 치수
   ctx.fillStyle = '#888'; ctx.font = `10px 'DM Mono',monospace`;
