@@ -2288,6 +2288,75 @@ function renderCanvas(layerIdx) {
     // 화살표·숫자 표시 없음
   }
 
+  // ── 슬리브(파란선) · 캡(빨간선) 시각화 ─────────────────────────────────
+  const useSleeve = document.getElementById('useSleeveChk').checked;
+  const useCap    = document.getElementById('useCapChk').checked;
+  if ((useSleeve || useCap) && lyr.placed.length > 0) {
+    // 배치 외곽 경계 (실제 파렛 좌표, mm)
+    const lMinX = Math.min(...lyr.placed.map(pb => pb.x)) + mrgW;
+    const lMaxX = Math.max(...lyr.placed.map(pb => pb.x + pb.bw)) + mrgW;
+    const lMinY = Math.min(...lyr.placed.map(pb => pb.y)) + mrgW;
+    const lMaxY = Math.max(...lyr.placed.map(pb => pb.y + pb.bh)) + mrgW;
+
+    if (useSleeve) {
+      const slGap   = 10;
+      const slThick = parseFloat(document.getElementById('sleeveThick').value) || 5;
+      // 슬리브 내경 (파란 실선)
+      const siX = ox + (lMinX - slGap) * scale;
+      const siY = oy + (lMinY - slGap) * scale;
+      const siW = (lMaxX - lMinX + slGap * 2) * scale;
+      const siH = (lMaxY - lMinY + slGap * 2) * scale;
+      ctx.strokeStyle = '#2266CC';
+      ctx.lineWidth = 1.8;
+      ctx.setLineDash([]);
+      ctx.strokeRect(siX, siY, siW, siH);
+
+      // 슬리브 외경 (파란 점선)
+      const soX = siX - slThick * scale;
+      const soY = siY - slThick * scale;
+      const soW = siW + slThick * 2 * scale;
+      const soH = siH + slThick * 2 * scale;
+      ctx.setLineDash([6, 3]);
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(soX, soY, soW, soH);
+      ctx.setLineDash([]);
+
+      // 라벨
+      const slFs = Math.max(8, scale * 12);
+      ctx.fillStyle = '#2266CC';
+      ctx.font = `bold ${slFs}px sans-serif`;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      ctx.fillText('슬리브', soX + 3, soY - slFs - 2);
+    }
+
+    if (useCap) {
+      const capGap   = 5;
+      const slGap    = useSleeve ? 10 : 0;
+      const slThick  = useSleeve ? (parseFloat(document.getElementById('sleeveThick').value) || 5) : 0;
+      // 캡 내경 = 슬리브 외경 + capGap (슬리브 없으면 배치 + capGap)
+      const baseL = lMinX - slGap - slThick;
+      const baseR = lMaxX + slGap + slThick;
+      const baseT = lMinY - slGap - slThick;
+      const baseB = lMaxY + slGap + slThick;
+
+      const ciX = ox + (baseL - capGap) * scale;
+      const ciY = oy + (baseT - capGap) * scale;
+      const ciW = (baseR - baseL + capGap * 2) * scale;
+      const ciH = (baseB - baseT + capGap * 2) * scale;
+      ctx.strokeStyle = '#CC2233';
+      ctx.lineWidth = 1.8;
+      ctx.setLineDash([]);
+      ctx.strokeRect(ciX, ciY, ciW, ciH);
+
+      // 라벨
+      const cpFs = Math.max(8, scale * 12);
+      ctx.fillStyle = '#CC2233';
+      ctx.font = `bold ${cpFs}px sans-serif`;
+      ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+      ctx.fillText('캡', ciX + ciW - 3, ciY - cpFs - 2);
+    }
+  }
+
 
 }
 
