@@ -308,6 +308,11 @@
   .tab-panel-pkg.active { display: block; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// OrbitControls inline (r128 compatible)
+THREE.OrbitControls=function(e,t){this.object=e;this.domElement=t||document;this.enabled=!0;this.target=new THREE.Vector3;this.minDistance=0;this.maxDistance=1/0;this.minZoom=0;this.maxZoom=1/0;this.minPolarAngle=0;this.maxPolarAngle=Math.PI;this.minAzimuthAngle=-1/0;this.maxAzimuthAngle=1/0;this.enableDamping=!1;this.dampingFactor=.05;this.enableZoom=!0;this.zoomSpeed=1;this.enableRotate=!0;this.rotateSpeed=1;this.enablePan=!0;this.panSpeed=1;this.screenSpacePanning=!0;this.keyPanSpeed=7;this.autoRotate=!1;this.autoRotateSpeed=2;this.enableKeys=!0;this.keys={LEFT:37,UP:38,RIGHT:39,BOTTOM:40};this.mouseButtons={LEFT:THREE.MOUSE.ROTATE,MIDDLE:THREE.MOUSE.DOLLY,RIGHT:THREE.MOUSE.PAN};this.touches={ONE:THREE.TOUCH.ROTATE,TWO:THREE.TOUCH.DOLLY_PAN};this.target0=this.target.clone();this.position0=this.object.position.clone();this.zoom0=this.object.zoom;var i=this,n={NONE:-1,ROTATE:0,DOLLY:1,PAN:2,TOUCH_ROTATE:3,TOUCH_PAN:4,TOUCH_DOLLY_PAN:5,TOUCH_DOLLY_ROTATE:6},a=n.NONE,r=1e-6,o=new THREE.Spherical,s=new THREE.Spherical,l=1,c=new THREE.Vector3,h=!1,d=new THREE.Vector2,u=new THREE.Vector2,p=new THREE.Vector2,f=new THREE.Vector2,m=new THREE.Vector2,g=new THREE.Vector2,v=new THREE.Vector2,y=new THREE.Vector2,b=new THREE.Vector2;function x(){return 2*Math.PI/60/60*i.autoRotateSpeed}function w(){return Math.pow(.95,i.zoomSpeed)}function _(e){s.theta-=e}function M(e){s.phi-=e}var S,E=(S=new THREE.Vector3,function(e,t){S.setFromMatrixColumn(t,0),S.multiplyScalar(-e),c.add(S)}),T=function(){var e=new THREE.Vector3;return function(t,n){i.screenSpacePanning?e.setFromMatrixColumn(n,1):(e.setFromMatrixColumn(n,0),e.crossVectors(i.object.up,e)),e.multiplyScalar(t),c.add(e)}}(),A=function(){var t=new THREE.Vector3;return function(n,a){var r=i.domElement;if(i.object.isPerspectiveCamera){var o=i.object.position;t.copy(o).sub(i.target);var s=t.length();s*=Math.tan(i.object.fov/2*Math.PI/180),E(2*n*s/r.clientHeight,i.object.matrix),T(2*a*s/r.clientHeight,i.object.matrix)}else i.object.isOrthographicCamera?(E(n*(i.object.right-i.object.left)/i.object.zoom/r.clientWidth,i.object.matrix),T(a*(i.object.top-i.object.bottom)/i.object.zoom/r.clientHeight,i.object.matrix)):console.warn("WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.")}}();function C(e){i.object.isPerspectiveCamera?l/=e:i.object.isOrthographicCamera?(i.object.zoom=Math.max(i.minZoom,Math.min(i.maxZoom,i.object.zoom*e)),i.object.updateProjectionMatrix(),h=!0):console.warn("WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.")}function L(e){i.object.isPerspectiveCamera?l*=e:i.object.isOrthographicCamera?(i.object.zoom=Math.max(i.minZoom,Math.min(i.maxZoom,i.object.zoom*e)),i.object.updateProjectionMatrix(),h=!0):console.warn("WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.")}function P(e){d.set(e.clientX,e.clientY)}function R(e){f.set(e.clientX,e.clientY)}function O(e){v.set(e.clientX,e.clientY)}function D(e){u.set(e.clientX,e.clientY),p.subVectors(u,d).multiplyScalar(i.rotateSpeed);var t=i.domElement;_(2*Math.PI*p.x/t.clientHeight),M(2*Math.PI*p.y/t.clientHeight),d.copy(u),i.update()}function N(e){m.set(e.clientX,e.clientY),g.subVectors(m,f),g.y>0?C(w()):g.y<0&&L(w()),f.copy(m),i.update()}function I(e){y.set(e.clientX,e.clientY),b.subVectors(y,v).multiplyScalar(i.panSpeed),A(b.x,b.y),v.copy(y),i.update()}function F(e){e.deltaY<0?L(w()):e.deltaY>0&&C(w()),i.update()}function z(e){var t;switch(e.preventDefault(),e.button){case 0:if(!1===i.enableRotate)return;P(e),a=n.ROTATE;break;case 1:if(!1===i.enableZoom)return;R(e),a=n.DOLLY;break;case 2:if(!1===i.enablePan)return;O(e),a=n.PAN}a!==n.NONE&&(document.addEventListener("mousemove",B,!1),document.addEventListener("mouseup",U,!1))}function B(e){switch(e.preventDefault(),a){case n.ROTATE:if(!1===i.enableRotate)return;D(e);break;case n.DOLLY:if(!1===i.enableZoom)return;N(e);break;case n.PAN:if(!1===i.enablePan)return;I(e)}}function U(e){document.removeEventListener("mousemove",B,!1),document.removeEventListener("mouseup",U,!1),a=n.NONE}var H=!1;function j(e){if(1==e.touches.length)d.set(e.touches[0].pageX,e.touches[0].pageY),a=n.TOUCH_ROTATE;else if(2==e.touches.length){var t=e.touches[0].pageX-e.touches[1].pageX,i=e.touches[0].pageY-e.touches[1].pageY,r=Math.sqrt(t*t+i*i);f.set(0,r);var o=(e.touches[0].pageX+e.touches[1].pageX)/2,s=(e.touches[0].pageY+e.touches[1].pageY)/2;v.set(o,s),a=n.TOUCH_DOLLY_PAN}H=!0}function k(e){switch(e.preventDefault(),e.stopPropagation(),a){case n.TOUCH_ROTATE:if(!1===i.enableRotate)return;u.set(e.touches[0].pageX,e.touches[0].pageY),p.subVectors(u,d).multiplyScalar(i.rotateSpeed);var t=i.domElement;_(2*Math.PI*p.x/t.clientHeight),M(2*Math.PI*p.y/t.clientHeight),d.copy(u),i.update();break;case n.TOUCH_DOLLY_PAN:if(!1===i.enableZoom&&!1===i.enablePan)return;var r=e.touches[0].pageX-e.touches[1].pageX,o=e.touches[0].pageY-e.touches[1].pageY,s=Math.sqrt(r*r+o*o);m.set(0,s),g.subVectors(m,f),g.y>0?C(w()):g.y<0&&L(w()),f.copy(m);var l=(e.touches[0].pageX+e.touches[1].pageX)/2,c=(e.touches[0].pageY+e.touches[1].pageY)/2;y.set(l,c),b.subVectors(y,v).multiplyScalar(i.panSpeed),A(b.x,b.y),v.copy(y),i.update()}}function W(){a=n.NONE}this.update=function(){var e=new THREE.Vector3,t=(new THREE.Quaternion).setFromUnitVectors(i.object.up,new THREE.Vector3(0,1,0)),n=t.clone().invert(),a=new THREE.Vector3,d=new THREE.Quaternion;return function(){var u=i.object.position;e.copy(u).sub(i.target),e.applyQuaternion(t),o.setFromVector3(e),i.autoRotate&&a==n.NONE&&_(x()),i.enableDamping?(o.theta+=s.theta*i.dampingFactor,o.phi+=s.phi*i.dampingFactor):(o.theta+=s.theta,o.phi+=s.phi),o.theta=Math.max(i.minAzimuthAngle,Math.min(i.maxAzimuthAngle,o.theta)),o.phi=Math.max(i.minPolarAngle+r,Math.min(i.maxPolarAngle-r,o.phi)),o.makeSafe(),o.radius*=l,o.radius=Math.max(i.minDistance,Math.min(i.maxDistance,o.radius)),i.enableDamping?i.target.addScaledVector(c,i.dampingFactor):i.target.add(c),e.setFromSpherical(o),e.applyQuaternion(n),u.copy(i.target).add(e),i.object.lookAt(i.target),i.enableDamping?(s.theta*=1-i.dampingFactor,s.phi*=1-i.dampingFactor,c.multiplyScalar(1-i.dampingFactor)):(s.set(0,0,0),c.set(0,0,0)),l=1;var p=!1;return!!(h||a.distanceToSquared(i.object.position)>r||8*(1-d.dot(i.object.quaternion))>r)&&(a.copy(i.object.position),d.copy(i.object.quaternion),h=!1,!0)}}(),this.dispose=function(){i.domElement.removeEventListener("contextmenu",V,!1),i.domElement.removeEventListener("mousedown",z,!1),i.domElement.removeEventListener("wheel",F,!1),i.domElement.removeEventListener("touchstart",j,!1),i.domElement.removeEventListener("touchend",W,!1),i.domElement.removeEventListener("touchmove",k,!1)};var V=function(e){i.enabled&&e.preventDefault()};this.domElement.addEventListener("contextmenu",V,!1),this.domElement.addEventListener("mousedown",z,!1),this.domElement.addEventListener("wheel",F,{passive:!1}),this.domElement.addEventListener("touchstart",j,{passive:!1}),this.domElement.addEventListener("touchend",W,!1),this.domElement.addEventListener("touchmove",k,{passive:!1}),this.update()};
+</script>
 </head>
 <body>
 <!-- 최상단 헤더바 -->
@@ -515,7 +520,7 @@
     <!-- 탭 -->
     <div class="tab-bar">
       <button class="tab-btn active" onclick="switchTab('plan', this)">평면도</button>
-      <button class="tab-btn" onclick="switchTab('view3d', this)">3D 뷰</button>
+      <button class="tab-btn" onclick="switchTab('view3d', this)">대각선 뷰</button>
     </div>
     <div class="tab-content" style="flex:1;display:flex;flex-direction:column;">
 
@@ -532,12 +537,13 @@
 
       <!-- 3D 뷰 탭 -->
       <div id="tab-view3d" class="tab-panel">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;position:relative;">
-          <canvas id="pallet3dCanvas" style="width:100%;height:380px;display:block;"></canvas>
-          <div id="pallet3dEmpty" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:var(--text3);pointer-events:none;">
+        <div style="background:#1a1a2e;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;position:relative;">
+          <div id="pallet3dContainer" style="width:100%;height:480px;display:block;"></div>
+          <div id="pallet3dEmpty" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:rgba(255,255,255,0.5);pointer-events:none;">
             <div style="font-size:24px;">📦</div>
             <div style="font-size:13px;margin-top:6px;">설계 실행 후 표시됩니다</div>
           </div>
+          <div id="pallet3dHint" style="display:none;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.35);font-size:10px;pointer-events:none;letter-spacing:0.5px;">마우스 드래그: 회전 · 스크롤: 줌 · 우클릭: 이동</div>
         </div>
       </div>
 
@@ -915,10 +921,42 @@ function runDesign() {
   if (errors.length) { errEl.textContent = errors.join('  |  '); errEl.style.display='block'; return; }
   errEl.style.display = 'none';
 
-  const box    = { w: bw, l: bl, h: bh };
-  const pallet = { w: pw, d: pd, mh: pmh };
-  _layout = design(box, pallet, fillInner);
-  _layout.box = box; _layout.pallet = pallet; _layout.fillInner = fillInner;
+  const box = { w: bw, l: bl, h: bh };
+
+  // ── 슬리브/캡 사용 시 파렛 유효 크기 축소 ─────────────────────────────────
+  const useSleeve = document.getElementById('useSleeveChk').checked;
+  const useCap    = document.getElementById('useCapChk').checked;
+  const slGap   = 10;                                                           // 슬리브 gap 고정
+  const slThick = useSleeve ? (parseFloat(document.getElementById('sleeveThick').value)||5) : 0;
+  const capGap  = 5;                                                            // 캡 gap 고정
+  const capThick= useCap    ? (parseFloat(document.getElementById('capThick').value)||5)  : 0;
+
+  // 파렛 양쪽 margin = 슬리브(gap+두께) + 캡(gap)
+  const marginW = (useSleeve ? slGap + slThick : 0) + (useCap ? capGap : 0);
+  const marginD = marginW;
+  const effPalW = pw - marginW * 2;
+  const effPalD = pd - marginD * 2;
+
+  if (effPalW <= 0 || effPalD <= 0) {
+    errEl.textContent = `포장재 여유(${marginW}mm×2)가 파렛 크기를 초과합니다.`;
+    errEl.style.display = 'block'; return;
+  }
+
+  // 박스가 유효 파렛에 들어가는지 체크
+  if (bw > effPalW || bl > effPalD) {
+    errEl.textContent = `박스(${bw}×${bl}mm)가 포장재 여유 적용 후 유효 파렛(${effPalW}×${effPalD}mm)보다 큽니다.`;
+    errEl.style.display = 'block'; return;
+  }
+
+  const palletEff  = { w: effPalW, d: effPalD, mh: pmh };   // 설계용 (축소)
+  const palletReal = { w: pw,      d: pd,       mh: pmh };   // 표시용 (실제)
+
+  _layout = design(box, palletEff, fillInner);
+  _layout.box          = box;
+  _layout.pallet       = palletReal;   // 카드/렌더링에 사용
+  _layout.palletEff    = palletEff;    // 실제 설계 기준
+  _layout.marginW      = marginW;
+  _layout.fillInner    = fillInner;
 
   // 카드 업데이트
   document.getElementById('c-total').textContent  = _layout.total;
@@ -950,6 +988,20 @@ function renderComment() {
   const box    = _layout.box;
   const pallet = _layout.pallet;
   const reasons = buildReason(box, pallet, _layout.fillInner, _layout);
+
+  // 슬리브/캡 margin 코멘트 삽입 (있을 때만)
+  const mrgW = _layout.marginW || 0;
+  if (mrgW > 0) {
+    const useSl = document.getElementById('useSleeveChk').checked;
+    const useCp = document.getElementById('useCapChk').checked;
+    const parts = [];
+    if (useSl) parts.push(`슬리브(gap 10 + 두께 ${document.getElementById('sleeveThick').value||5}mm)`);
+    if (useCp) parts.push(`캡(gap 5mm)`);
+    reasons.unshift({
+      icon: '📦', highlight: false,
+      text: `포장재 여유 <b>${mrgW}mm × 양쪽</b> 적용 — ${parts.join(' + ')}. 유효 배치 파렛: <b>${_layout.palletEff.w}×${_layout.palletEff.d}mm</b>`
+    });
+  }
 
   const box2  = document.getElementById('commentBox');
   const list  = document.getElementById('commentList');
@@ -1194,21 +1246,29 @@ function switchPkgTab(name, btn) {
 
 function calcPackaging() {
   if (!_layout) return;
+  _layout.pkg3d = {};  // reset 3D packaging data
 
   const useSleeve = document.getElementById('useSleeveChk').checked;
   const useCap    = document.getElementById('useCapChk').checked;
   if (!useSleeve && !useCap) {
-    // 3D 초기화
-  if (typeof _pallet3dRenderer !== 'undefined' && _pallet3dRenderer) {
-    try { _pallet3dRenderer.dispose(); } catch(e){}
+    // 3D re-render without packaging
+    if (document.getElementById('tab-view3d').classList.contains('active')) drawPallet3D();
+
+    // 3D 초기화 (if no layout active)
+  if (!_layout.layers.length && _pallet3dRenderer) {
+    try { 
+      if (_pallet3dControls) { _pallet3dControls.dispose(); _pallet3dControls = null; }
+      _pallet3dRenderer.dispose(); 
+      const cont = document.getElementById('pallet3dContainer');
+      if (cont) cont.innerHTML = '';
+    } catch(e){}
     _pallet3dRenderer = null;
   }
-  if (typeof _pallet3dAnimId !== 'undefined' && _pallet3dAnimId) {
+  if (_pallet3dAnimId) {
     cancelAnimationFrame(_pallet3dAnimId); _pallet3dAnimId = null;
   }
-  const cvs3d = document.getElementById('pallet3dCanvas');
-  if (cvs3d) { const ctx3 = cvs3d.getContext('2d'); if(ctx3) ctx3.clearRect(0,0,cvs3d.width,cvs3d.height); }
   document.getElementById('pallet3dEmpty').style.display = 'block';
+  document.getElementById('pallet3dHint').style.display = 'none';
 
   document.getElementById('pkgResultPanel').style.display = 'none';
   if(document.getElementById('pkgFitWarning')) document.getElementById('pkgFitWarning').style.display = 'none';
@@ -1321,6 +1381,7 @@ function calcPackaging() {
     ).join('');
 
     drawSleeveUnfold(innerW, innerD, sleeveH, thick, seam);
+    _layout.pkg3d.sleeve = { outerW, outerD, innerW, innerD, height: sleeveH, thick };
   } else {
     document.getElementById('tabSleeveBtn').style.display = 'none';
   }
@@ -1376,6 +1437,7 @@ function calcPackaging() {
     ).join('');
 
     drawCapUnfold(baseW, baseD, capH, capThick);
+    _layout.pkg3d.cap = { baseW, baseD, depth: capH, thick: capThick };
   } else {
     document.getElementById('tabCapBtn').style.display = 'none';
   }
@@ -1386,6 +1448,9 @@ function calcPackaging() {
   } else if (useCap) {
     switchPkgTab('cap', document.getElementById('tabCapBtn'));
   }
+
+  // 3D 뷰 업데이트 (슬리브/캡 반영)
+  if (document.getElementById('tab-view3d').classList.contains('active')) drawPallet3D();
 }
 
 // ── 슬리브 전개도 캔버스 ──────────────────────────────
@@ -1536,191 +1601,479 @@ function drawCapUnfold(W, D, depth, thick) {
 // 파렛타이징 3D 뷰 (항상 표시)
 // ══════════════════════════════════════════════════════
 
-let _pallet3dRenderer = null;  // unused (ISO 2D)
+let _pallet3dRenderer = null;
 let _pallet3dAnimId   = null;
+let _pallet3dScene    = null;
+let _pallet3dCamera   = null;
+let _pallet3dControls = null;
 
 function drawPallet3D() {
   if (!_layout) return;
 
-  // 기존 애니메이션 정리
-  if (_pallet3dAnimId) { cancelAnimationFrame(_pallet3dAnimId); _pallet3dAnimId = null; }
-
-  const cvs = document.getElementById('pallet3dCanvas');
-  if (!cvs) return;
-
-  let cW = cvs.clientWidth;
-  if (cW < 10) {
-    const wrap = cvs.closest('.tab-panel') || cvs.parentElement;
-    cW = (wrap && wrap.clientWidth > 10) ? wrap.clientWidth : (window.innerWidth || 360);
-  }
-  const cH = cvs.clientHeight || Math.round(cW * 0.72);
-  cvs.width = cW; cvs.height = cH;
-
+  const container = document.getElementById('pallet3dContainer');
+  if (!container) return;
   document.getElementById('pallet3dEmpty').style.display = 'none';
+  document.getElementById('pallet3dHint').style.display = 'block';
 
-  const ctx = cvs.getContext('2d');
-  if (!ctx) return;
+  const cW = container.clientWidth || 600;
+  const cH = container.clientHeight || 480;
 
-  const palW   = _layout.pallet.w;
-  const palD   = _layout.pallet.d;
+  // Cleanup previous
+  if (_pallet3dAnimId) { cancelAnimationFrame(_pallet3dAnimId); _pallet3dAnimId = null; }
+  if (_pallet3dControls) { _pallet3dControls.dispose(); _pallet3dControls = null; }
+  if (_pallet3dRenderer) { _pallet3dRenderer.dispose(); container.innerHTML = ''; _pallet3dRenderer = null; }
+
+  // Scene
+  const scene = new THREE.Scene();
+  _pallet3dScene = scene;
+
+  // Gradient sky
+  const canvas2 = document.createElement('canvas');
+  canvas2.width = 2; canvas2.height = 256;
+  const gc = canvas2.getContext('2d');
+  const grd = gc.createLinearGradient(0, 0, 0, 256);
+  grd.addColorStop(0, '#0d1b2a');
+  grd.addColorStop(0.5, '#1b2838');
+  grd.addColorStop(1, '#2a3040');
+  gc.fillStyle = grd;
+  gc.fillRect(0, 0, 2, 256);
+  const skyTex = new THREE.CanvasTexture(canvas2);
+  scene.background = skyTex;
+
+  // Camera
+  const camera = new THREE.PerspectiveCamera(40, cW / cH, 0.1, 50000);
+  _pallet3dCamera = camera;
+
+  // Renderer
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  renderer.setSize(cW, cH);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+  container.appendChild(renderer.domElement);
+  _pallet3dRenderer = renderer;
+
+  // Controls
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.minDistance = 100;
+  controls.maxDistance = 10000;
+  controls.maxPolarAngle = Math.PI * 0.48;
+  controls.minPolarAngle = Math.PI * 0.05;
+  _pallet3dControls = controls;
+
+  // Lighting
+  const ambient = new THREE.AmbientLight(0x8090b0, 0.6);
+  scene.add(ambient);
+
+  const hemiLight = new THREE.HemisphereLight(0xc0d0ff, 0x806040, 0.4);
+  scene.add(hemiLight);
+
+  const dirLight = new THREE.DirectionalLight(0xfff0e0, 1.2);
+  dirLight.position.set(800, 1200, 600);
+  dirLight.castShadow = true;
+  dirLight.shadow.mapSize.set(2048, 2048);
+  dirLight.shadow.camera.near = 10;
+  dirLight.shadow.camera.far = 5000;
+  dirLight.shadow.camera.left = -1500;
+  dirLight.shadow.camera.right = 1500;
+  dirLight.shadow.camera.top = 1500;
+  dirLight.shadow.camera.bottom = -1500;
+  dirLight.shadow.bias = -0.001;
+  dirLight.shadow.radius = 3;
+  scene.add(dirLight);
+
+  const fillLight = new THREE.DirectionalLight(0x6080c0, 0.3);
+  fillLight.position.set(-500, 400, -300);
+  scene.add(fillLight);
+
+  // ── Ground plane ───
+  const groundGeo = new THREE.PlaneGeometry(8000, 8000);
+  const groundMat = new THREE.MeshStandardMaterial({
+    color: 0x2a3040, roughness: 0.85, metalness: 0.05
+  });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -1;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  // Grid
+  const gridHelper = new THREE.GridHelper(4000, 40, 0x3a4050, 0x3a4050);
+  gridHelper.position.y = 0;
+  gridHelper.material.opacity = 0.2;
+  gridHelper.material.transparent = true;
+  scene.add(gridHelper);
+
+  const palW = _layout.pallet.w;
+  const palD = _layout.pallet.d;
   const totalH = _layout.totalH;
-  const box    = _layout.box;
+  const box = _layout.box;
+  const mrgW = _layout.marginW || 0;
+  const PALLET_H = 120;
 
-  // ── 스케일 및 원점 설정 ──────────────────────────────────────────────────
-  const maxDim = Math.max(palW, palD, totalH);
-  const sc     = Math.min(cW * 0.40, cH * 0.52) / maxDim;
+  // Center offset
+  const cx = -palW / 2;
+  const cz = -palD / 2;
 
-  // 아이소메트릭 고정 시점 (45° + 앙각 30°)
-  // X축: 파렛 가로 (좌→우), Y축: 높이 (아래→위), Z축: 파렛 세로 (앞→뒤)
-  const COS30 = Math.cos(Math.PI / 6);   // ≈ 0.866
-  const SIN30 = Math.sin(Math.PI / 6);   // 0.5
-
-  function iso(wx, wy, wz) {
-    const sx =  (wx - wz) * COS30 * sc;
-    const sy = -(wx + wz) * SIN30 * sc - wy * sc;
-    return sx, sy;
+  // ── Wooden Pallet ───
+  function createWoodMaterial(color, roughness) {
+    return new THREE.MeshStandardMaterial({
+      color: color,
+      roughness: roughness || 0.75,
+      metalness: 0.02,
+      flatShading: false,
+    });
   }
 
-  // 화면 중앙 정렬을 위한 bounding box 계산
-  const corners = [
-    [0,0,0],[palW,0,0],[palW,0,palD],[0,0,palD],
-    [0,totalH,0],[palW,totalH,0],[palW,totalH,palD],[0,totalH,palD]
+  const palletGroup = new THREE.Group();
+
+  // Top boards (3 planks)
+  const boardH = PALLET_H * 0.35;
+  const boardW = palW * 0.30;
+  const boardGap = (palW - boardW * 3) / 2;
+  const woodColors = [0xb8944c, 0xc49a52, 0xba9248];
+  for (let i = 0; i < 3; i++) {
+    const geo = new THREE.BoxGeometry(boardW, boardH, palD);
+    const mat = createWoodMaterial(woodColors[i]);
+    const board = new THREE.Mesh(geo, mat);
+    board.position.set(cx + boardW / 2 + i * (boardW + boardGap), PALLET_H - boardH / 2, cz + palD / 2);
+    board.castShadow = true;
+    board.receiveShadow = true;
+    palletGroup.add(board);
+
+    // Board edge bevel (top highlight)
+    const edgeGeo = new THREE.BoxGeometry(boardW - 2, 1, palD - 2);
+    const edgeMat = new THREE.MeshStandardMaterial({ color: 0xd4a858, roughness: 0.6 });
+    const edge = new THREE.Mesh(edgeGeo, edgeMat);
+    edge.position.set(board.position.x, PALLET_H + 0.5, board.position.z);
+    palletGroup.add(edge);
+  }
+
+  // Cross beams (3)
+  const beamH = PALLET_H * 0.25;
+  const beamW = palW;
+  const beamD = palD * 0.08;
+  const beamMat = createWoodMaterial(0xa0803c, 0.8);
+  [0.1, 0.5, 0.9].forEach(zr => {
+    const geo = new THREE.BoxGeometry(beamW, beamH, beamD);
+    const beam = new THREE.Mesh(geo, beamMat);
+    beam.position.set(cx + palW / 2, PALLET_H - boardH - beamH / 2, cz + palD * zr);
+    beam.castShadow = true;
+    beam.receiveShadow = true;
+    palletGroup.add(beam);
+  });
+
+  // Legs (9 blocks: 3x3 grid)
+  const legH = PALLET_H * 0.4;
+  const legW = palW * 0.08;
+  const legD = palD * 0.06;
+  const legMat = createWoodMaterial(0x8a6830, 0.85);
+  [0.08, 0.46, 0.84].forEach(xr => {
+    [0.1, 0.5, 0.9].forEach(zr => {
+      const geo = new THREE.BoxGeometry(legW, legH, legD);
+      const leg = new THREE.Mesh(geo, legMat);
+      leg.position.set(cx + palW * xr, legH / 2, cz + palD * zr);
+      leg.castShadow = true;
+      leg.receiveShadow = true;
+      palletGroup.add(leg);
+    });
+  });
+
+  scene.add(palletGroup);
+
+  // ── Cardboard Boxes ───
+  const BOX_PALETTE = [
+    { base: 0xc8956a, darker: 0xa87048, edge: 0x8a5530 },
+    { base: 0xc08a5c, darker: 0xa07040, edge: 0x825028 },
+    { base: 0xd0a070, darker: 0xb08050, edge: 0x906838 },
+    { base: 0xb88858, darker: 0x986840, edge: 0x7a5028 },
+    { base: 0xc49060, darker: 0xa47848, edge: 0x866030 },
+    { base: 0xbc8658, darker: 0x9c6e40, edge: 0x7e5628 },
   ];
-  let minSx=Infinity, maxSx=-Infinity, minSy=Infinity, maxSy=-Infinity;
-  corners.forEach(([wx,wy,wz])=>{
-    const sx=(wx-wz)*COS30*sc, sy=-(wx+wz)*SIN30*sc-wy*sc;
-    minSx=Math.min(minSx,sx); maxSx=Math.max(maxSx,sx);
-    minSy=Math.min(minSy,sy); maxSy=Math.max(maxSy,sy);
-  });
 
-  // 라벨 공간 포함 중앙 정렬
-  const ox = cW/2 - (minSx + maxSx)/2;
-  const oy = cH * 0.52 - (minSy + maxSy)/2;
-
-  function p(wx, wy, wz) {
-    return [ox + (wx-wz)*COS30*sc,  oy - (wx+wz)*SIN30*sc - wy*sc];
-  }
-
-  // ── 명암 헬퍼 ────────────────────────────────────────────────────────────
-  function hexRgb(hex) {
-    const n = parseInt(hex.replace('#',''), 16);
-    return [(n>>16)&255, (n>>8)&255, n&255];
-  }
-  function rgbStr(r,g,b,a=1) {
-    return a<1 ? `rgba(${r},${g},${b},${a})` : `rgb(${r},${g},${b})`;
-  }
-  function shade(hex, topF, leftF, rightF) {
-    const [r,g,b] = hexRgb(hex);
-    return {
-      top:   rgbStr(Math.min(255,r*topF  |0), Math.min(255,g*topF  |0), Math.min(255,b*topF  |0)),
-      left:  rgbStr(Math.min(255,r*leftF |0), Math.min(255,g*leftF |0), Math.min(255,b*leftF |0)),
-      right: rgbStr(Math.min(255,r*rightF|0), Math.min(255,g*rightF|0), Math.min(255,b*rightF|0)),
-    };
-  }
-
-  // ── 폴리곤 그리기 ─────────────────────────────────────────────────────────
-  function poly(pts, fill, strokeClr, lw=0.7) {
-    ctx.beginPath();
-    ctx.moveTo(pts[0][0], pts[0][1]);
-    for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
-    ctx.closePath();
-    if(fill)      { ctx.fillStyle=fill;      ctx.fill(); }
-    if(strokeClr) { ctx.strokeStyle=strokeClr; ctx.lineWidth=lw; ctx.stroke(); }
-  }
-
-  // ── 박스 하나 그리기 ──────────────────────────────────────────────────────
-  function drawBox(x, y, z, w, h, d, baseHex) {
-    const s = shade(baseHex, 1.18, 0.95, 0.72);
-    const edge = shade(baseHex, 0.55, 0.55, 0.55).top;
-
-    // Top face
-    poly([p(x,y+h,z), p(x+w,y+h,z), p(x+w,y+h,z+d), p(x,y+h,z+d)], s.top,  edge);
-    // Left face (앞)
-    poly([p(x,y,z),   p(x+w,y,z),   p(x+w,y+h,z),   p(x,y+h,z)  ], s.left, edge);
-    // Right face (우)
-    poly([p(x+w,y,z), p(x+w,y,z+d), p(x+w,y+h,z+d), p(x+w,y+h,z)], s.right,edge);
-  }
-
-  // ── 배경 ─────────────────────────────────────────────────────────────────
-  const bg = ctx.createLinearGradient(0,0,0,cH);
-  bg.addColorStop(0,'#F5F5F3'); bg.addColorStop(1,'#E8E8E6');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,cW,cH);
-
-  // ── 바닥 그림자 (파렛 아래) ───────────────────────────────────────────────
-  const shY = -palW*0.05;
-  const shPts = [p(0,shY,0),p(palW,shY,0),p(palW,shY,palD),p(0,shY,palD)];
-  const shCx = (shPts[0][0]+shPts[2][0])/2, shCy = (shPts[0][1]+shPts[2][1])/2;
-  const shRad = Math.max(palW,palD)*sc*0.7;
-  const shGrd = ctx.createRadialGradient(shCx,shCy,0,shCx,shCy,shRad);
-  shGrd.addColorStop(0,'rgba(0,0,0,0.22)'); shGrd.addColorStop(1,'rgba(0,0,0,0)');
-  poly(shPts, shGrd, null);
-
-  // ── 파렛 ─────────────────────────────────────────────────────────────────
-  const pH   = palW * 0.038;
-  const legH = pH * 0.6;
-  const legW = palW * 0.14;
-
-  // 파렛 다리 3줄 (먼저 그려야 파렛 상판에 가려짐)
-  [[0.08,0.44,0.80]].forEach(xs => {
-    xs.forEach(xr => {
-      drawBox(palW*xr, -pH-legH, 0, legW, legH, palD, '#AAAAAA');
+  function createCardboardMaterial(colorHex) {
+    return new THREE.MeshStandardMaterial({
+      color: colorHex,
+      roughness: 0.82,
+      metalness: 0.0,
+      flatShading: false,
     });
-  });
+  }
 
-  // 파렛 상판
-  drawBox(0, -pH, 0, palW, pH, palD, '#CCCCCC');
+  // Collect and build boxes
+  const GAP_RATIO = 0.94;
+  const boxGroup = new THREE.Group();
 
-  // 파렛 보드 줄 (가로선)
-  const boardClr = 'rgba(0,0,0,0.06)';
-  [0.25, 0.5, 0.75].forEach(r => {
-    const z = palD * r;
-    poly([p(0,-pH+1,z),p(palW,-pH+1,z),p(palW,0,z),p(0,0,z)], boardClr, null);
-  });
-
-  // ── 박스들: 페인터 알고리즘 (고정 시점 기준) ──────────────────────────────
-  // 아이소 고정 시점에서 z 내림차순 → x 내림차순 → y 내림차순이 올바른 순서
-  const LAYER_COLORS = ['#E8710A','#D4560A','#F0900A','#C45A0A','#E8800A','#D46A0A'];
-
-  const allBoxes = [];
   _layout.layers.forEach((lyr, li) => {
-    const zBase = li * box.h;
-    const clr = lyr.placed.length === 0 ? LAYER_COLORS[0] : LAYER_COLORS[li % LAYER_COLORS.length];
+    const palette = BOX_PALETTE[li % BOX_PALETTE.length];
+    const zBase = PALLET_H + li * box.h;
+
     lyr.placed.forEach(pb => {
-      const isInner = pb.face === 'INNER';
-      allBoxes.push({
-        x: pb.x, y: zBase, z: pb.y,
-        w: pb.bw * 0.975, h: pb.bh2 * 0.975, d: pb.bh * 0.975,
-        color: isInner ? '#E8A050' : clr,
+      const bx = pb.x + mrgW;
+      const bz = pb.y + mrgW;
+      const bw = pb.bw * GAP_RATIO;
+      const bh = pb.bh2 * GAP_RATIO;
+      const bd = pb.bh * GAP_RATIO;
+
+      const oX = pb.bw * (1 - GAP_RATIO) / 2;
+      const oZ = pb.bh * (1 - GAP_RATIO) / 2;
+
+      // Main box body
+      const geo = new THREE.BoxGeometry(bw, bh, bd);
+
+      // Different materials per face for realism
+      const mats = [
+        createCardboardMaterial(palette.darker), // +X
+        createCardboardMaterial(palette.darker), // -X
+        createCardboardMaterial(palette.base),   // +Y (top - lighter)
+        createCardboardMaterial(palette.edge),   // -Y (bottom - darkest)
+        createCardboardMaterial(palette.darker), // +Z
+        createCardboardMaterial(palette.darker), // -Z
+      ];
+
+      const mesh = new THREE.Mesh(geo, mats);
+      mesh.position.set(
+        cx + bx + oX + bw / 2,
+        zBase + bh / 2,
+        cz + bz + oZ + bd / 2
+      );
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      boxGroup.add(mesh);
+
+      // Tape line on top (cross shape)
+      const tapeW = bw * 0.035;
+      const tapeD = bd * 0.035;
+      const tapeMat = new THREE.MeshStandardMaterial({
+        color: 0x6b4226, roughness: 0.5, metalness: 0.1
       });
+
+      // Horizontal tape
+      const tapeH1 = new THREE.Mesh(new THREE.BoxGeometry(bw * 0.9, 0.8, tapeD), tapeMat);
+      tapeH1.position.set(mesh.position.x, zBase + bh + 0.5, mesh.position.z);
+      boxGroup.add(tapeH1);
+
+      // Vertical tape
+      const tapeV1 = new THREE.Mesh(new THREE.BoxGeometry(tapeW, 0.8, bd * 0.9), tapeMat);
+      tapeV1.position.set(mesh.position.x, zBase + bh + 0.5, mesh.position.z);
+      boxGroup.add(tapeV1);
+
+      // Front face tape (vertical center line)
+      const tapeFront = new THREE.Mesh(new THREE.BoxGeometry(tapeW, bh * 0.85, 0.5), tapeMat);
+      tapeFront.position.set(mesh.position.x, mesh.position.y, mesh.position.z - bd / 2 - 0.2);
+      boxGroup.add(tapeFront);
+
+      // Edge wireframe for crispness
+      const edgesGeo = new THREE.EdgesGeometry(geo);
+      const edgesMat = new THREE.LineBasicMaterial({ color: palette.edge, linewidth: 1, transparent: true, opacity: 0.35 });
+      const edgesMesh = new THREE.LineSegments(edgesGeo, edgesMat);
+      edgesMesh.position.copy(mesh.position);
+      boxGroup.add(edgesMesh);
     });
   });
 
-  // 고정 아이소 정렬: (z+d) 내림차순 → (x+w) 내림차순 (뒤→앞, 우→좌 순)
-  allBoxes.sort((a, b) =>
-    (b.z + b.d/2) - (a.z + a.d/2) ||
-    (b.x + b.w/2) - (a.x + a.w/2) ||
-    (a.y)         - (b.y)
-  );
+  scene.add(boxGroup);
 
-  allBoxes.forEach(b => drawBox(b.x, b.y, b.z, b.w, b.h, b.d, b.color));
+  // ── Space box (transparent) ───
+  _layout.layers.forEach((lyr) => {
+    if (!lyr.spaceBox) return;
+    const sb = lyr.spaceBox;
+    const sbGeo = new THREE.BoxGeometry(sb.sw, sb.bh2, sb.sh);
+    const sbMat = new THREE.MeshStandardMaterial({
+      color: 0x4488cc, transparent: true, opacity: 0.08,
+      roughness: 0.9, metalness: 0, side: THREE.DoubleSide
+    });
+    const sbMesh = new THREE.Mesh(sbGeo, sbMat);
+    sbMesh.position.set(
+      cx + sb.x + mrgW + sb.sw / 2,
+      PALLET_H + sb.bh2 / 2,
+      cz + sb.y + mrgW + sb.sh / 2
+    );
+    scene.add(sbMesh);
 
-  // ── 치수 라벨 ─────────────────────────────────────────────────────────────
-  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  ctx.fillStyle = '#555';
-  ctx.font = `bold ${Math.max(10, cW*0.022)}px 'DM Mono', monospace`;
-  const lb = p(palW/2, -pH*2, palD + palD*0.08);
-  ctx.fillText(`${palW} × ${palD} mm`, lb[0], lb[1]);
-  ctx.fillStyle = '#888';
-  ctx.font = `${Math.max(9, cW*0.018)}px 'DM Mono', monospace`;
-  ctx.fillText(`H ${totalH}mm  /  ${_layout.layers.length}단`, lb[0], lb[1] + Math.max(12, cW*0.025));
+    // Wireframe
+    const sbEdges = new THREE.EdgesGeometry(sbGeo);
+    const sbEdgeMat = new THREE.LineBasicMaterial({ color: 0x6699cc, transparent: true, opacity: 0.25 });
+    const sbEdgeMesh = new THREE.LineSegments(sbEdges, sbEdgeMat);
+    sbEdgeMesh.position.copy(sbMesh.position);
+    scene.add(sbEdgeMesh);
+  });
+
+  // ── Sleeve (translucent rectangular tube) ───
+  if (_layout.pkg3d && _layout.pkg3d.sleeve) {
+    const sl = _layout.pkg3d.sleeve;
+    const slY = PALLET_H;
+    const slH = sl.height;
+
+    // Sleeve = outer shell - inner hole → 4 walls
+    const slMat = new THREE.MeshPhysicalMaterial({
+      color: 0xc8a060,
+      transparent: true,
+      opacity: 0.25,
+      roughness: 0.7,
+      metalness: 0.0,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      transmission: 0.1,
+    });
+    const slEdgeMat = new THREE.LineBasicMaterial({
+      color: 0x8a6830, transparent: true, opacity: 0.5
+    });
+
+    // 4 walls of the sleeve
+    const walls = [
+      // Front wall (z = min)
+      { w: sl.outerW, h: slH, d: sl.thick,
+        px: 0, py: slY + slH/2, pz: -(sl.outerD/2) + sl.thick/2 },
+      // Back wall (z = max)
+      { w: sl.outerW, h: slH, d: sl.thick,
+        px: 0, py: slY + slH/2, pz: (sl.outerD/2) - sl.thick/2 },
+      // Left wall (x = min)
+      { w: sl.thick, h: slH, d: sl.outerD - sl.thick*2,
+        px: -(sl.outerW/2) + sl.thick/2, py: slY + slH/2, pz: 0 },
+      // Right wall (x = max)
+      { w: sl.thick, h: slH, d: sl.outerD - sl.thick*2,
+        px: (sl.outerW/2) - sl.thick/2, py: slY + slH/2, pz: 0 },
+    ];
+
+    walls.forEach(wall => {
+      const geo = new THREE.BoxGeometry(wall.w, wall.h, wall.d);
+      const mesh = new THREE.Mesh(geo, slMat);
+      mesh.position.set(wall.px, wall.py, wall.pz);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      scene.add(mesh);
+
+      const edges = new THREE.EdgesGeometry(geo);
+      const edgeMesh = new THREE.LineSegments(edges, slEdgeMat);
+      edgeMesh.position.copy(mesh.position);
+      scene.add(edgeMesh);
+    });
+
+    // Flute pattern lines on front/back walls (vertical corrugation hint)
+    const fluteMat = new THREE.LineBasicMaterial({ color: 0xa08040, transparent: true, opacity: 0.15 });
+    const fluteCount = Math.floor(sl.outerW / 30);
+    for (let i = 1; i < fluteCount; i++) {
+      const fx = -sl.outerW/2 + (sl.outerW / fluteCount) * i;
+      // Front
+      const fGeo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(fx, slY, -sl.outerD/2 - 0.5),
+        new THREE.Vector3(fx, slY + slH, -sl.outerD/2 - 0.5)
+      ]);
+      scene.add(new THREE.Line(fGeo, fluteMat));
+      // Back
+      const bGeo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(fx, slY, sl.outerD/2 + 0.5),
+        new THREE.Vector3(fx, slY + slH, sl.outerD/2 + 0.5)
+      ]);
+      scene.add(new THREE.Line(bGeo, fluteMat));
+    }
+  }
+
+  // ── Cap (top and bottom lids) ───
+  if (_layout.pkg3d && _layout.pkg3d.cap) {
+    const cap = _layout.pkg3d.cap;
+    const capDepth = cap.depth;
+    const capThick = cap.thick;
+
+    const capMat = new THREE.MeshPhysicalMaterial({
+      color: 0xb09050,
+      transparent: true,
+      opacity: 0.30,
+      roughness: 0.65,
+      metalness: 0.0,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const capEdgeMat = new THREE.LineBasicMaterial({
+      color: 0x7a5828, transparent: true, opacity: 0.55
+    });
+
+    function drawCap3D(centerY, openDirection) {
+      // openDirection: 1 = opens downward (top cap), -1 = opens upward (bottom cap)
+      // Top plate
+      const topGeo = new THREE.BoxGeometry(cap.baseW, capThick, cap.baseD);
+      const topMesh = new THREE.Mesh(topGeo, capMat);
+      topMesh.position.set(0, centerY, 0);
+      topMesh.castShadow = true;
+      scene.add(topMesh);
+      const topEdge = new THREE.LineSegments(new THREE.EdgesGeometry(topGeo), capEdgeMat);
+      topEdge.position.copy(topMesh.position);
+      scene.add(topEdge);
+
+      // 4 side flaps
+      const flaps = [
+        // Front flap
+        { w: cap.baseW, h: capDepth, d: capThick,
+          px: 0, py: centerY + openDirection * capDepth/2, pz: -(cap.baseD/2) + capThick/2 },
+        // Back flap
+        { w: cap.baseW, h: capDepth, d: capThick,
+          px: 0, py: centerY + openDirection * capDepth/2, pz: (cap.baseD/2) - capThick/2 },
+        // Left flap
+        { w: capThick, h: capDepth, d: cap.baseD - capThick*2,
+          px: -(cap.baseW/2) + capThick/2, py: centerY + openDirection * capDepth/2, pz: 0 },
+        // Right flap
+        { w: capThick, h: capDepth, d: cap.baseD - capThick*2,
+          px: (cap.baseW/2) - capThick/2, py: centerY + openDirection * capDepth/2, pz: 0 },
+      ];
+      flaps.forEach(f => {
+        const geo = new THREE.BoxGeometry(f.w, f.h, f.d);
+        const mesh = new THREE.Mesh(geo, capMat);
+        mesh.position.set(f.px, f.py, f.pz);
+        mesh.castShadow = true;
+        scene.add(mesh);
+        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), capEdgeMat);
+        edges.position.copy(mesh.position);
+        scene.add(edges);
+      });
+    }
+
+    // Bottom cap: sits on pallet, opens upward
+    const bottomCapY = PALLET_H + capThick/2;
+    drawCap3D(bottomCapY, 1);
+
+    // Top cap: sits on top of boxes, opens downward
+    const topCapY = PALLET_H + totalH - capThick/2;
+    drawCap3D(topCapY, -1);
+  }
+
+  // ── Camera position ───
+  const maxDim = Math.max(palW, palD, totalH + PALLET_H);
+  const dist = maxDim * 1.8;
+  camera.position.set(dist * 0.7, dist * 0.6, dist * 0.7);
+  controls.target.set(0, (totalH + PALLET_H) * 0.35, 0);
+  controls.update();
+
+  // Shadow light follows scene
+  dirLight.target.position.set(0, 0, 0);
+  scene.add(dirLight.target);
+
+  // Animation loop
+  function animate() {
+    _pallet3dAnimId = requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
 }
 
 // 창 크기 변경 시 3D 반응형
 window.addEventListener('resize', () => {
-  // 파렛타이징 3D
+  // Three.js 3D resize
   if (_pallet3dRenderer && document.getElementById('tab-view3d').classList.contains('active')) {
-    const cvs = document.getElementById('pallet3dCanvas');
-    if (cvs) { _pallet3dRenderer.setSize(cvs.clientWidth, cvs.clientHeight); }
+    const container = document.getElementById('pallet3dContainer');
+    if (container) {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      _pallet3dCamera.aspect = w / h;
+      _pallet3dCamera.updateProjectionMatrix();
+      _pallet3dRenderer.setSize(w, h);
+    }
   }
 
   // 전개도 재렌더
@@ -1755,11 +2108,12 @@ function renderCanvas(layerIdx) {
   const wrap = document.getElementById('canvasWrap');
   wrap.innerHTML = '';
 
-  const lyr = _layout.layers[layerIdx];
-  const p   = _layout.pallet;
-  const clr = LAYER_COLORS[layerIdx % LAYER_COLORS.length];
+  const lyr  = _layout.layers[layerIdx];
+  const p    = _layout.pallet;      // 실제 파렛 (표시용)
+  const mrgW = _layout.marginW || 0; // 슬리브/캡 margin
+  const clr  = LAYER_COLORS[layerIdx % LAYER_COLORS.length];
 
-  // 캔버스 크기 계산
+  // 캔버스 크기 계산 (실제 파렛 기준)
   const maxW = wrap.clientWidth  - 32 || 600;
   const maxH = wrap.clientHeight - 32 || 420;
   const scale = Math.min(maxW / (p.w * 1.08), maxH / (p.d * 1.08), 0.6);
@@ -1782,13 +2136,30 @@ function renderCanvas(layerIdx) {
   ctx.rect(ox, oy, p.w * scale, p.d * scale);
   ctx.fill(); ctx.stroke();
 
+  // 슬리브/캡 margin 경계선 (점선)
+  if (mrgW > 0) {
+    ctx.setLineDash([4, 3]);
+    ctx.strokeStyle = '#BBBBBB';
+    ctx.lineWidth = 0.8;
+    ctx.strokeRect(
+      ox + mrgW * scale, oy + mrgW * scale,
+      (p.w - mrgW*2) * scale, (p.d - mrgW*2) * scale
+    );
+    ctx.setLineDash([]);
+    // margin 라벨
+    ctx.fillStyle = '#BBBBBB';
+    ctx.font = `${Math.max(7, scale*10)}px 'DM Mono',monospace`;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText(`±${mrgW}mm`, ox + 2, oy + 2);
+  }
+
   // 스페이스박스 먼저 그리기 (박스 아래 레이어)
   if (lyr.spaceBox) {
     const sb    = lyr.spaceBox;
-    const sx    = ox + sb.x  * scale;   // 실제 스페이스박스 X
-    const sw    = sb.sw * scale;         // 실제 스페이스박스 가로
-    const iSy   = oy + sb.y  * scale;   // 실제 스페이스박스 Y
-    const iSh   = sb.sh * scale;         // 실제 스페이스박스 세로
+    const sx    = ox + (sb.x + mrgW) * scale;
+    const sw    = sb.sw * scale;
+    const iSy   = oy + (sb.y + mrgW) * scale;
+    const iSh   = sb.sh * scale;
 
     // 배경: 실제 스페이스박스 영역만
     ctx.fillStyle = '#F5F5F3';
@@ -1829,10 +2200,10 @@ function renderCanvas(layerIdx) {
   for (const pb of lyr.placed) {
     const isInner = pb.face === 'INNER';
     const isEdge  = pb.face.startsWith('EDGE_');
-    // EDGE_ 박스의 라벨 방향
     const edgeFaceMap = { EDGE_L: 'L', EDGE_R: 'R', EDGE_B: 'B', EDGE_T: 'T' };
-    const bx = ox + pb.x * scale;
-    const by = oy + pb.y * scale;
+    // 박스 좌표는 effPal 기준 → 실제 파렛 위 위치로 변환 (margin offset 추가)
+    const bx = ox + (pb.x + mrgW) * scale;
+    const by = oy + (pb.y + mrgW) * scale;
     const bw = pb.bw * scale;
     const bh = pb.bh * scale;
 
