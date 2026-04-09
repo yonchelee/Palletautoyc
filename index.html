@@ -500,9 +500,9 @@ THREE.OrbitControls=function(e,t){this.object=e;this.domElement=t||document;this
         <div class="card-sub">% 부피</div>
       </div>
       <div class="card">
-        <div class="card-label">단수</div>
-        <div class="card-value" id="c-layers">—</div>
-        <div class="card-sub">층</div>
+        <div class="card-label" id="c-space-label">스페이스박스</div>
+        <div class="card-value" id="c-space" style="font-size:13px;line-height:1.3;">—</div>
+        <div class="card-sub" id="c-space-sub">mm</div>
       </div>
       <div class="card">
         <div class="card-label">파렛 사이즈</div>
@@ -735,48 +735,51 @@ function tryOrient(box, pallet, orient, layer, z, fillInner) {
 
 
   // ── 내부채우기: space box 영역을 추가 박스로 채움 ──────────────────────
-  if (fillInner) {
+  // ── 스페이스박스: 내부 빈 공간이 있으면 항상 생성 ──────────────────────
+  let spaceBox = null;
+  {
     let sx, sy, sw, sh;
     if (orient === 0) {
       sx = bw; sw = rX - bw; sy = altBh; sh = bh * rows - altBh * 2;
     } else {
       sx = altBw; sw = bw * cols - altBw * 2; sy = bh; sh = tY - bh;
     }
-    if (sw > 0 && sh > 0) {
+
+    if (fillInner && sw > 0 && sh > 0) {
+      // 내부채우기: 가능한 만큼 박스로 채운 뒤, 남은 공간 → 스페이스박스
       const ic1 = fit(sw, bw) * fit(sh, bh);
       const ic2 = fit(sw, altBw) * fit(sh, altBh);
-      if (ic1 >= ic2) {
+      let filledW = 0, filledH = 0;
+      if (ic1 >= ic2 && ic1 > 0) {
         const nc = fit(sw, bw), nr = fit(sh, bh);
+        filledW = nc * bw; filledH = nr * bh;
         for (let r = 0; r < nr; r++)
           for (let c = 0; c < nc; c++)
             placed.push({ x: sx+c*bw, y: sy+r*bh, z, bw, bh, bh2: box.h,
                           orient, face: 'INNER', row: r, col: c, layer });
-      } else {
+      } else if (ic2 > 0) {
         const nc = fit(sw, altBw), nr = fit(sh, altBh);
+        filledW = nc * altBw; filledH = nr * altBh;
         for (let r = 0; r < nr; r++)
           for (let c = 0; c < nc; c++)
             placed.push({ x: sx+c*altBw, y: sy+r*altBh, z, bw: altBw, bh: altBh, bh2: box.h,
                           orient: 1-orient, face: 'INNER', row: r, col: c, layer });
       }
-    }
-  }
 
-  // 스페이스박스: L열끝~R열시작 × EDGE_B아래끝~EDGE_T위시작 전체 영역
-  let spaceBox = null;
-  if (!fillInner) {
-    let sx, sy, sw, sh;
-    if (orient === 0) {
-      sx = bw;
-      sw = rX - bw;                         // 갭 조정된 R열 위치 기준
-      sy = altBh;
-      sh = bh * rows - altBh - altBh;
-    } else {
-      sy = bh;
-      sh = tY - bh;                         // 갭 조정된 T행 위치 기준
-      sx = altBw;
-      sw = bw * cols - altBw - altBw;
-    }
-    if (sw > 0 && sh > 0) {
+      // 남은 공간: 오른쪽 스트립 vs 아래쪽 스트립 중 큰 쪽
+      const remW = sw - filledW, remH = sh - filledH;
+      const rightArea  = remW * (filledH > 0 ? filledH : sh);
+      const bottomArea = sw * remH;
+      if (ic1 === 0 && ic2 === 0) {
+        // 아무것도 못 채움 → 전체가 스페이스박스
+        spaceBox = { x: sx, y: sy, z, sw, sh, bh2: box.h, layer };
+      } else if (rightArea > 0 && rightArea >= bottomArea) {
+        spaceBox = { x: sx+filledW, y: sy, z, sw: remW, sh: filledH > 0 ? filledH : sh, bh2: box.h, layer };
+      } else if (bottomArea > 0) {
+        spaceBox = { x: sx, y: sy+filledH, z, sw, sh: remH, bh2: box.h, layer };
+      }
+    } else if (!fillInner && sw > 0 && sh > 0) {
+      // 외곽만: 전체 내부 영역이 스페이스박스
       spaceBox = { x: sx, y: sy, z, sw, sh, bh2: box.h, layer };
     }
   }
@@ -1016,7 +1019,18 @@ function runDesign() {
   // 파렛 사이즈
   document.getElementById('c-pallet').textContent   = `${pw}×${pd}`;
   document.getElementById('c-fill').textContent   = _layout.fillRate.toFixed(1);
-  document.getElementById('c-layers').textContent = _layout.layers.length;
+
+  // 스페이스박스 카드
+  const sb0 = _layout.layers.length > 0 ? _layout.layers[0].spaceBox : null;
+  if (sb0) {
+    document.getElementById('c-space').textContent = `${sb0.sw}×${sb0.sh}`;
+    document.getElementById('c-space-sub').textContent = `H ${sb0.bh2}mm`;
+    document.getElementById('c-space-label').textContent = '스페이스박스';
+  } else {
+    document.getElementById('c-space').textContent = '없음';
+    document.getElementById('c-space-sub').textContent = '';
+    document.getElementById('c-space-label').textContent = '스페이스박스';
+  }
 
   _currentLayer = 0;
   renderCanvas(0);
@@ -2333,8 +2347,9 @@ function resetAll() {
   document.getElementById('pmh').value = 1500;
   document.querySelector('input[name=mode][value=outer]').checked = true;
   document.getElementById('errorMsg').style.display = 'none';
-  ['c-total','c-outer','c-inner','c-fill','c-layers','c-pallet'].forEach(id => document.getElementById(id).textContent = '—');
+  ['c-total','c-outer','c-inner','c-fill','c-space','c-pallet'].forEach(id => document.getElementById(id).textContent = '—');
   document.getElementById('c-inner-sub').textContent = '1단수량×단수';
+  document.getElementById('c-space-sub').textContent = 'mm';
   document.getElementById('btnPdf').disabled = true;
   document.getElementById('pkgResultPanel').style.display = 'none';
   if(document.getElementById('pkgFitWarning')) document.getElementById('pkgFitWarning').style.display = 'none';
