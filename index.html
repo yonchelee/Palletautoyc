@@ -1569,229 +1569,154 @@ function drawPallet3D() {
   const palD   = _layout.pallet.d;
   const totalH = _layout.totalH;
   const box    = _layout.box;
+
+  // ── 스케일 및 원점 설정 ──────────────────────────────────────────────────
   const maxDim = Math.max(palW, palD, totalH);
-  const sc     = Math.min(cW * 0.42, cH * 0.55) / maxDim;
+  const sc     = Math.min(cW * 0.40, cH * 0.52) / maxDim;
 
-  // 중심점
-  const cx0 = palW / 2, cz0 = palD / 2;
+  // 아이소메트릭 고정 시점 (45° + 앙각 30°)
+  // X축: 파렛 가로 (좌→우), Y축: 높이 (아래→위), Z축: 파렛 세로 (앞→뒤)
+  const COS30 = Math.cos(Math.PI / 6);   // ≈ 0.866
+  const SIN30 = Math.sin(Math.PI / 6);   // 0.5
 
-  // ── 아이소메트릭 + 수평 회전 투영 ──────────────────────────────────────────
-  // angle: 수평 회전각 (y축 회전)
-  // elev:  앙각 (30도 고정)
-  const elev = Math.PI / 6;  // 30°
-
-  function project(wx, wy, wz, angle) {
-    // 중심 기준 회전
-    const dx = wx - cx0, dz = wz - cz0;
-    const rx =  dx * Math.cos(angle) + dz * Math.sin(angle);
-    const rz = -dx * Math.sin(angle) + dz * Math.cos(angle);
-
-    const sx = rx * sc;
-    const sy = -rz * Math.sin(elev) * sc - wy * sc;
-
-    // 화면 중심 기준
-    const ox = cW * 0.50;
-    const oy = cH * 0.74;
-    return [ox + sx, oy + sy];
+  function iso(wx, wy, wz) {
+    const sx =  (wx - wz) * COS30 * sc;
+    const sy = -(wx + wz) * SIN30 * sc - wy * sc;
+    return sx, sy;
   }
 
-  // ── 박스 그리기 (상/좌/우 3면 + 명암) ────────────────────────────────────
-  function hexToRgb(hex) {
+  // 화면 중앙 정렬을 위한 bounding box 계산
+  const corners = [
+    [0,0,0],[palW,0,0],[palW,0,palD],[0,0,palD],
+    [0,totalH,0],[palW,totalH,0],[palW,totalH,palD],[0,totalH,palD]
+  ];
+  let minSx=Infinity, maxSx=-Infinity, minSy=Infinity, maxSy=-Infinity;
+  corners.forEach(([wx,wy,wz])=>{
+    const sx=(wx-wz)*COS30*sc, sy=-(wx+wz)*SIN30*sc-wy*sc;
+    minSx=Math.min(minSx,sx); maxSx=Math.max(maxSx,sx);
+    minSy=Math.min(minSy,sy); maxSy=Math.max(maxSy,sy);
+  });
+
+  // 라벨 공간 포함 중앙 정렬
+  const ox = cW/2 - (minSx + maxSx)/2;
+  const oy = cH * 0.52 - (minSy + maxSy)/2;
+
+  function p(wx, wy, wz) {
+    return [ox + (wx-wz)*COS30*sc,  oy - (wx+wz)*SIN30*sc - wy*sc];
+  }
+
+  // ── 명암 헬퍼 ────────────────────────────────────────────────────────────
+  function hexRgb(hex) {
     const n = parseInt(hex.replace('#',''), 16);
     return [(n>>16)&255, (n>>8)&255, n&255];
   }
-  function lighten(r,g,b,t) {
-    return `rgb(${Math.round(r+(255-r)*t)},${Math.round(g+(255-g)*t)},${Math.round(b+(255-b)*t)})`;
+  function rgbStr(r,g,b,a=1) {
+    return a<1 ? `rgba(${r},${g},${b},${a})` : `rgb(${r},${g},${b})`;
   }
-  function darken(r,g,b,t) {
-    return `rgb(${Math.round(r*(1-t))},${Math.round(g*(1-t))},${Math.round(b*(1-t))})`;
-  }
-
-  function drawIsoBox(x, y, z, w, h, d, baseHex, angle) {
-    const [r,g,b] = hexToRgb(baseHex);
-    const topClr   = lighten(r,g,b,0.18);
-    const leftClr  = lighten(r,g,b,0.02);
-    const rightClr = darken(r,g,b,0.22);
-    const edge     = darken(r,g,b,0.35);
-
-    const tl = project(x,   y+h, z,   angle);
-    const tr = project(x+w, y+h, z,   angle);
-    const br = project(x+w, y+h, z+d, angle);
-    const bl = project(x,   y+h, z+d, angle);
-
-    const fl = project(x,   y,   z,   angle);
-    const fr = project(x+w, y,   z,   angle);
-
-    const rl = project(x+w, y,   z+d, angle);
-    const rr = project(x+w, y+h, z+d, angle);
-
-    // 어느 면이 앞에 오는지 각도에 따라 결정
-    const showLeft  = true;
-    const showRight = true;
-
-    function quad(pts, fill) {
-      ctx.beginPath();
-      ctx.moveTo(pts[0][0], pts[0][1]);
-      pts.slice(1).forEach(p => ctx.lineTo(p[0], p[1]));
-      ctx.closePath();
-      ctx.fillStyle = fill; ctx.fill();
-      ctx.strokeStyle = edge; ctx.lineWidth = 0.6; ctx.stroke();
-    }
-
-    // 상단면
-    quad([tl, tr, br, bl], topClr);
-    // 앞면 (z=0)
-    quad([fl, fr, tr, tl], leftClr);
-    // 우측면 (x+w)
-    quad([fr, rl, rr, tr], rightClr);
+  function shade(hex, topF, leftF, rightF) {
+    const [r,g,b] = hexRgb(hex);
+    return {
+      top:   rgbStr(Math.min(255,r*topF  |0), Math.min(255,g*topF  |0), Math.min(255,b*topF  |0)),
+      left:  rgbStr(Math.min(255,r*leftF |0), Math.min(255,g*leftF |0), Math.min(255,b*leftF |0)),
+      right: rgbStr(Math.min(255,r*rightF|0), Math.min(255,g*rightF|0), Math.min(255,b*rightF|0)),
+    };
   }
 
-  // ── 파렛 그리기 ──────────────────────────────────────────────────────────
-  function drawPalletBox(angle) {
-    const pH = palW * 0.036;
-    const y  = -pH;
-
-    // 파렛 상판
-    const [pr,pg,pb2] = hexToRgb('#C8C8C8');
-    const pTop   = lighten(pr,pg,pb2,0.1);
-    const pFront = darken(pr,pg,pb2,0.12);
-    const pRight = darken(pr,pg,pb2,0.24);
-
-    function quad(pts, fill) {
-      ctx.beginPath();
-      ctx.moveTo(pts[0][0], pts[0][1]);
-      pts.slice(1).forEach(p => ctx.lineTo(p[0], p[1]));
-      ctx.closePath();
-      ctx.fillStyle = fill; ctx.fill();
-      ctx.strokeStyle = '#999'; ctx.lineWidth = 0.8; ctx.stroke();
-    }
-
-    const tl = project(0,    0,  0,    angle);
-    const tr = project(palW, 0,  0,    angle);
-    const br = project(palW, 0,  palD, angle);
-    const bl = project(0,    0,  palD, angle);
-    const fl = project(0,    y,  0,    angle);
-    const fr = project(palW, y,  0,    angle);
-    const rl = project(palW, y,  palD, angle);
-
-    quad([tl, tr, br, bl], pTop);
-    quad([fl, fr, tr, tl], pFront);
-    quad([fr, rl, br, tr], pRight);
-
-    // 파렛 다리 (3줄)
-    const legH = pH * 0.55, legW = palW * 0.12;
-    [0.1, 0.44, 0.78].forEach(xr => {
-      const lx = palW * xr;
-      const ly = y - legH;
-      const [lr,lg,lb] = hexToRgb('#AAAAAA');
-      drawIsoBox(lx, ly, 0, legW, legH, palD, '#AAAAAA', angle);
-    });
-  }
-
-  // ── 바닥 그림자 ──────────────────────────────────────────────────────────
-  function drawShadow(angle) {
-    const pH = palW * 0.036;
-    const shY = -pH * 1.8;  // 바닥
-    const bl = project(0,    shY, 0,    angle);
-    const br = project(palW, shY, 0,    angle);
-    const tr = project(palW, shY, palD, angle);
-    const tl = project(0,    shY, palD, angle);
-
-    ctx.save();
+  // ── 폴리곤 그리기 ─────────────────────────────────────────────────────────
+  function poly(pts, fill, strokeClr, lw=0.7) {
     ctx.beginPath();
-    ctx.moveTo(bl[0], bl[1]);
-    [br, tr, tl].forEach(p => ctx.lineTo(p[0], p[1]));
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
     ctx.closePath();
-    const grd = ctx.createRadialGradient(
-      (bl[0]+tr[0])/2, (bl[1]+tr[1])/2, 0,
-      (bl[0]+tr[0])/2, (bl[1]+tr[1])/2, Math.max(cW,cH)*0.3
-    );
-    grd.addColorStop(0, 'rgba(0,0,0,0.18)');
-    grd.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = grd;
-    ctx.fill();
-    ctx.restore();
+    if(fill)      { ctx.fillStyle=fill;      ctx.fill(); }
+    if(strokeClr) { ctx.strokeStyle=strokeClr; ctx.lineWidth=lw; ctx.stroke(); }
   }
 
-  // ── 박스 목록 정렬 (페인터 알고리즘) ─────────────────────────────────────
-  const COLORS = [
-    '#E8710A','#D4560A','#F0900A','#C45A0A','#E8800A','#D46A0A'
-  ];
+  // ── 박스 하나 그리기 ──────────────────────────────────────────────────────
+  function drawBox(x, y, z, w, h, d, baseHex) {
+    const s = shade(baseHex, 1.18, 0.95, 0.72);
+    const edge = shade(baseHex, 0.55, 0.55, 0.55).top;
+
+    // Top face
+    poly([p(x,y+h,z), p(x+w,y+h,z), p(x+w,y+h,z+d), p(x,y+h,z+d)], s.top,  edge);
+    // Left face (앞)
+    poly([p(x,y,z),   p(x+w,y,z),   p(x+w,y+h,z),   p(x,y+h,z)  ], s.left, edge);
+    // Right face (우)
+    poly([p(x+w,y,z), p(x+w,y,z+d), p(x+w,y+h,z+d), p(x+w,y+h,z)], s.right,edge);
+  }
+
+  // ── 배경 ─────────────────────────────────────────────────────────────────
+  const bg = ctx.createLinearGradient(0,0,0,cH);
+  bg.addColorStop(0,'#F5F5F3'); bg.addColorStop(1,'#E8E8E6');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,cW,cH);
+
+  // ── 바닥 그림자 (파렛 아래) ───────────────────────────────────────────────
+  const shY = -palW*0.05;
+  const shPts = [p(0,shY,0),p(palW,shY,0),p(palW,shY,palD),p(0,shY,palD)];
+  const shCx = (shPts[0][0]+shPts[2][0])/2, shCy = (shPts[0][1]+shPts[2][1])/2;
+  const shRad = Math.max(palW,palD)*sc*0.7;
+  const shGrd = ctx.createRadialGradient(shCx,shCy,0,shCx,shCy,shRad);
+  shGrd.addColorStop(0,'rgba(0,0,0,0.22)'); shGrd.addColorStop(1,'rgba(0,0,0,0)');
+  poly(shPts, shGrd, null);
+
+  // ── 파렛 ─────────────────────────────────────────────────────────────────
+  const pH   = palW * 0.038;
+  const legH = pH * 0.6;
+  const legW = palW * 0.14;
+
+  // 파렛 다리 3줄 (먼저 그려야 파렛 상판에 가려짐)
+  [[0.08,0.44,0.80]].forEach(xs => {
+    xs.forEach(xr => {
+      drawBox(palW*xr, -pH-legH, 0, legW, legH, palD, '#AAAAAA');
+    });
+  });
+
+  // 파렛 상판
+  drawBox(0, -pH, 0, palW, pH, palD, '#CCCCCC');
+
+  // 파렛 보드 줄 (가로선)
+  const boardClr = 'rgba(0,0,0,0.06)';
+  [0.25, 0.5, 0.75].forEach(r => {
+    const z = palD * r;
+    poly([p(0,-pH+1,z),p(palW,-pH+1,z),p(palW,0,z),p(0,0,z)], boardClr, null);
+  });
+
+  // ── 박스들: 페인터 알고리즘 (고정 시점 기준) ──────────────────────────────
+  // 아이소 고정 시점에서 z 내림차순 → x 내림차순 → y 내림차순이 올바른 순서
+  const LAYER_COLORS = ['#E8710A','#D4560A','#F0900A','#C45A0A','#E8800A','#D46A0A'];
 
   const allBoxes = [];
   _layout.layers.forEach((lyr, li) => {
     const zBase = li * box.h;
+    const clr = lyr.placed.length === 0 ? LAYER_COLORS[0] : LAYER_COLORS[li % LAYER_COLORS.length];
     lyr.placed.forEach(pb => {
+      const isInner = pb.face === 'INNER';
       allBoxes.push({
         x: pb.x, y: zBase, z: pb.y,
         w: pb.bw * 0.975, h: pb.bh2 * 0.975, d: pb.bh * 0.975,
-        color: pb.face === 'INNER' ? '#E8A050' : COLORS[li % COLORS.length],
-        alpha: pb.face === 'INNER' ? 0.7 : 1.0
+        color: isInner ? '#E8A050' : clr,
       });
     });
   });
 
-  // ── 메인 렌더 함수 ────────────────────────────────────────────────────────
-  function render(angle) {
-    ctx.clearRect(0, 0, cW, cH);
+  // 고정 아이소 정렬: (z+d) 내림차순 → (x+w) 내림차순 (뒤→앞, 우→좌 순)
+  allBoxes.sort((a, b) =>
+    (b.z + b.d/2) - (a.z + a.d/2) ||
+    (b.x + b.w/2) - (a.x + a.w/2) ||
+    (a.y)         - (b.y)
+  );
 
-    // 배경 그라디언트
-    const bg = ctx.createLinearGradient(0, 0, 0, cH);
-    bg.addColorStop(0, '#F8F8F6');
-    bg.addColorStop(1, '#EAEAE8');
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, cW, cH);
+  allBoxes.forEach(b => drawBox(b.x, b.y, b.z, b.w, b.h, b.d, b.color));
 
-    // 바닥 그림자
-    drawShadow(angle);
-
-    // 파렛
-    drawPalletBox(angle);
-
-    // 박스 정렬: 시점에 따른 깊이 정렬
-    const sorted = [...allBoxes].sort((a, b) => {
-      const az = a.z + a.d/2, bz = b.z + b.d/2;
-      const ax2 = a.x + a.w/2, bx2 = b.x + b.w/2;
-      // 현재 각도에서 시점 깊이 계산
-      const da = -(az-cz0)*Math.cos(angle) + (ax2-cx0)*Math.sin(angle);
-      const db = -(bz-cz0)*Math.cos(angle) + (bx2-cx0)*Math.sin(angle);
-      return db - da;
-    });
-
-    sorted.forEach(b => {
-      ctx.globalAlpha = b.alpha;
-      drawIsoBox(b.x, b.y, b.z, b.w, b.h, b.d, b.color, angle);
-      ctx.globalAlpha = 1;
-    });
-
-    // 치수 라벨
-    const lb = project(palW/2, -palW*0.04, palD + palD*0.12, angle);
-    ctx.fillStyle = '#555';
-    ctx.font = `${Math.max(10, cW*0.022)}px 'DM Mono', monospace`;
-    ctx.textAlign = 'center';
-    ctx.fillText(`${palW}×${palD}mm  H:${totalH}mm / ${_layout.layers.length}단`, lb[0], lb[1] + 14);
-  }
-
-  // ── 자동 회전 애니메이션 ──────────────────────────────────────────────────
-  let angle   = -Math.PI * 0.2;   // 초기 시점: 약간 왼쪽에서
-  let running = true;
-
-  function animate() {
-    if (!running) return;
-    _pallet3dAnimId = requestAnimationFrame(animate);
-    angle += 0.007;
-    render(angle);
-  }
-
-  // 탭 비활성 시 정지
-  const panel = document.getElementById('tab-view3d');
-  if (panel) {
-    new MutationObserver(() => {
-      running = panel.classList.contains('active');
-    }).observe(panel, { attributes: true, attributeFilter: ['class'] });
-  }
-
-  animate();
+  // ── 치수 라벨 ─────────────────────────────────────────────────────────────
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillStyle = '#555';
+  ctx.font = `bold ${Math.max(10, cW*0.022)}px 'DM Mono', monospace`;
+  const lb = p(palW/2, -pH*2, palD + palD*0.08);
+  ctx.fillText(`${palW} × ${palD} mm`, lb[0], lb[1]);
+  ctx.fillStyle = '#888';
+  ctx.font = `${Math.max(9, cW*0.018)}px 'DM Mono', monospace`;
+  ctx.fillText(`H ${totalH}mm  /  ${_layout.layers.length}단`, lb[0], lb[1] + Math.max(12, cW*0.025));
 }
 
 // 창 크기 변경 시 3D 반응형
