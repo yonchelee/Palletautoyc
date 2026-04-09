@@ -629,19 +629,16 @@ function tryOrient(box, pallet, orient, layer, z, fillInner) {
     return { cols, rows, placed, count: placed.length, spaceBox: null };
   }
 
-  // ── 갭 계산 및 R열/T행 위치 조정 ────────────────────────────────────────
-  // 남은 갭 < altBw(altBh)이면 R열(T행)을 EDGE 끝에 바로 붙임
+  // ── R열/T행 위치: L+EDGE+R 밀착 배치, 데드존은 센터링으로 외곽 분배 ──
   let rX, tY;
   if (orient === 0) {
-    const xAvail = bw * (cols - 1) - bw;
-    const nEdge  = fit(xAvail, altBw);
-    const gapX   = xAvail - nEdge * altBw;
-    rX = (gapX > 0 && gapX < altBw) ? bw + nEdge * altBw : bw * (cols - 1);
+    const edgeAvail = pallet.w - 2 * bw;
+    const nEdge = edgeAvail > 0 ? fit(edgeAvail, altBw) : 0;
+    rX = bw + nEdge * altBw;
   } else {
-    const yAvail = bh * (rows - 1) - bh;
-    const nEdge  = fit(yAvail, altBh);
-    const gapY   = yAvail - nEdge * altBh;
-    tY = (gapY > 0 && gapY < altBh) ? bh + nEdge * altBh : bh * (rows - 1);
+    const edgeAvail = pallet.d - 2 * bh;
+    const nEdge = edgeAvail > 0 ? fit(edgeAvail, altBh) : 0;
+    tY = bh + nEdge * altBh;
   }
 
   // ── 외곽모드: 주 방향 박스 배치 ───────────────────────────────────────────
