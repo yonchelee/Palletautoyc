@@ -313,22 +313,32 @@
 <!-- 최상단 헤더바 -->
 <div style="
   width:100%; background:#000000;
-  color:#fff; font-size:11px; font-weight:700;
-  padding:6px 20px; text-align:right;
-  font-family:'Noto Sans KR',sans-serif;
-  letter-spacing:0.5px; box-sizing:border-box;
+  color:#fff; box-sizing:border-box;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px; height:44px;
   position:sticky; top:0; z-index:9999;
   box-shadow:0 2px 8px rgba(0,0,0,0.3);
-">선행기구개발그룹 (MX)</div>
+">
+  <div style="display:flex;align-items:baseline;gap:10px;">
+    <span style="font-size:14px;font-weight:800;letter-spacing:0.5px;font-family:'DM Mono',monospace;">
+      Palletizing Designer
+    </span>
+    <span style="font-size:10px;font-weight:400;color:rgba(255,255,255,0.55);letter-spacing:0.3px;
+      font-family:'Noto Sans KR',sans-serif;">
+      파렛타이징 자동설계
+    </span>
+  </div>
+  <div style="font-size:11px;font-weight:700;letter-spacing:0.5px;
+    font-family:'Noto Sans KR',sans-serif;color:rgba(255,255,255,0.85);">
+    선행기구개발그룹 (MX)
+  </div>
+</div>
 
 <div class="app">
 
   <!-- ── 사이드바 ── -->
   <aside class="sidebar">
-    <div class="logo">
-      Palletizing<br>Designer
-      <span>파렛타이징 자동설계</span>
-    </div>
+
 
     <!-- 마스터박스 -->
     <div>
@@ -557,11 +567,7 @@
           <div style="font-size:10px;color:var(--text3);margin-bottom:4px;font-weight:600;">전개도</div>
           <canvas id="sleeveCanvas"></canvas>
         </div>
-        <!-- 슬리브 3D -->
-        <div class="pkg-canvas-wrap" style="margin-top:8px;">
-          <div style="font-size:10px;color:var(--text3);margin-bottom:4px;font-weight:600;">3D 시뮬레이션</div>
-          <canvas id="sleeve3dCanvas" style="width:100%;height:220px;display:block;border-radius:4px;"></canvas>
-        </div>
+
       </div>
 
       <!-- 캡 패널 -->
@@ -575,11 +581,7 @@
           <div style="font-size:10px;color:var(--text3);margin-bottom:4px;font-weight:600;">전개도</div>
           <canvas id="capCanvas"></canvas>
         </div>
-        <!-- 캡 3D -->
-        <div class="pkg-canvas-wrap" style="margin-top:8px;">
-          <div style="font-size:10px;color:var(--text3);margin-bottom:4px;font-weight:600;">3D 시뮬레이션</div>
-          <canvas id="cap3dCanvas" style="width:100%;height:220px;display:block;border-radius:4px;"></canvas>
-        </div>
+
       </div>
     </div>
 
@@ -1294,11 +1296,9 @@ function calcPackaging() {
       document.getElementById('sleeveRows').innerHTML =
         sleeveErrs.map(e => `<div style="color:#C0392B;font-size:11px;padding:4px 0;">⚠ ${e}</div>`).join('');
       document.getElementById('sleeveCanvas').style.display = 'none';
-      document.getElementById('sleeve3dCanvas').style.display = 'none';
       return;
     }
     document.getElementById('sleeveCanvas').style.display = '';
-    document.getElementById('sleeve3dCanvas').style.display = '';
 
     // 전개 치수: 둘레 + 이음매
     const unfoldL = (outerW + outerD) * 2 + seam;
@@ -1321,7 +1321,6 @@ function calcPackaging() {
     ).join('');
 
     drawSleeveUnfold(innerW, innerD, sleeveH, thick, seam);
-    setTimeout(() => draw3DSleeve(outerW, outerD, sleeveH), 50);
   } else {
     document.getElementById('tabSleeveBtn').style.display = 'none';
   }
@@ -1352,11 +1351,9 @@ function calcPackaging() {
       document.getElementById('capRows').innerHTML =
         capErrs.map(e => `<div style="color:#C0392B;font-size:11px;padding:4px 0;">⚠ ${e}</div>`).join('');
       document.getElementById('capCanvas').style.display = 'none';
-      document.getElementById('cap3dCanvas').style.display = 'none';
       return;
     }
     document.getElementById('capCanvas').style.display = '';
-    document.getElementById('cap3dCanvas').style.display = '';
 
     // 캡 전개: 바닥(baseW×baseD) + 4면 날개(capH)
     // 전개도: 가로 = baseW + capH*2, 세로 = baseD + capH*2
@@ -1379,7 +1376,6 @@ function calcPackaging() {
     ).join('');
 
     drawCapUnfold(baseW, baseD, capH, capThick);
-    setTimeout(() => draw3DCap(baseW, baseD, capH, capThick), 50);
   } else {
     document.getElementById('tabCapBtn').style.display = 'none';
   }
@@ -1732,175 +1728,14 @@ window.addEventListener('resize', () => {
 });
 
 // ══════════════════════════════════════════════════════
-// 3D 시뮬레이션 (Three.js) — 파렛+박스+슬리브+캡 통합
-// ══════════════════════════════════════════════════════
 
 
 
 // 박스 하나 그리기 (색상 + 와이어프레임)
 
 // 슬리브 3D: 파렛 + 개별박스들 + 슬리브(투명 사각통)
-function draw3DSleeve(outerW, outerD, sleeveH) {
-  if (!_layout) return;
-  const cvs = document.getElementById('sleeve3dCanvas');
-  if (!cvs) return;
-
-  let cW = cvs.clientWidth || (cvs.closest('.pkg-canvas-wrap') || {}).clientWidth || 300;
-  const cH = Math.round(cW * 0.7);
-  cvs.width = cW; cvs.height = cH;
-
-  const ctx = cvs.getContext('2d');
-  const palW = _layout.pallet.w, palD = _layout.pallet.d, totalH = _layout.totalH;
-  const maxDim = Math.max(outerW, outerD, sleeveH + 20);
-  const sc = Math.min(cW, cH) * 0.35 / maxDim;
-  const ox = cW * 0.5, oy = cH * 0.82;
-
-  function iso(wx, wy, wz) {
-    return [ox + (wx - wz) * Math.cos(Math.PI/6) * sc,
-            oy - (wx + wz) * Math.sin(Math.PI/6) * sc - wy * sc];
-  }
-  function face(pts, fill, stroke, lw=0.5) {
-    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
-    pts.slice(1).forEach(p => ctx.lineTo(p[0], p[1]));
-    ctx.closePath();
-    ctx.fillStyle = fill; ctx.fill();
-    ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke();
-  }
-
-  ctx.clearRect(0, 0, cW, cH);
-  ctx.fillStyle = '#F0F0EE'; ctx.fillRect(0, 0, cW, cH);
-
-  // 파렛
-  const pH = palW * 0.04;
-  face([iso(0,-pH,0),iso(palW,-pH,0),iso(palW,-pH,palD),iso(0,-pH,palD)], '#CCC','#999');
-  face([iso(0,-pH,0),iso(palW,-pH,0),iso(palW,0,0),iso(0,0,0)], '#BBB','#999');
-  face([iso(palW,-pH,0),iso(palW,-pH,palD),iso(palW,0,palD),iso(palW,0,0)], '#AAA','#999');
-
-  // 박스들
-  const COLS = [['#F0820A','#D4700A','#C06000'],['#E06000','#C85000','#B04000']];
-  const boxes = [];
-  _layout.layers.forEach((lyr, li) => {
-    lyr.placed.forEach(pb => {
-      boxes.push({x:pb.x, y:li*_layout.box.h, z:pb.y, w:pb.bw, h:pb.bh2, d:pb.bh, ci:li%2});
-    });
-  });
-  boxes.sort((a,b) => (b.z+b.d)-(a.z+a.d) || (b.x+b.w)-(a.x+a.w));
-  boxes.forEach(b => {
-    const c = COLS[b.ci];
-    const x=b.x, y=b.y, z=b.z, w=b.w*0.97, h=b.h*0.97, d=b.d*0.97;
-    face([iso(x,y+h,z),iso(x+w,y+h,z),iso(x+w,y+h,z+d),iso(x,y+h,z+d)], c[0],'#88440055');
-    face([iso(x,y,z),iso(x+w,y,z),iso(x+w,y+h,z),iso(x,y+h,z)], c[1],'#88440055');
-    face([iso(x+w,y,z),iso(x+w,y,z+d),iso(x+w,y+h,z+d),iso(x+w,y+h,z)], c[2],'#88440055');
-  });
-
-  // 슬리브 (반투명 사각통)
-  const gx=(palW-outerW)/2, gz=(palD-outerD)/2;
-  const sW=outerW, sD=outerD, sH=sleeveH;
-  const sa = '55';
-  // 앞면
-  face([iso(gx,0,gz),iso(gx+sW,0,gz),iso(gx+sW,sH,gz),iso(gx,sH,gz)], '#F5CBA7'+sa,'#CC7700',1.2);
-  // 우측면
-  face([iso(gx+sW,0,gz),iso(gx+sW,0,gz+sD),iso(gx+sW,sH,gz+sD),iso(gx+sW,sH,gz)], '#EAB78E'+sa,'#CC7700',1.2);
-  // 윗면 테두리
-  ctx.beginPath();
-  [iso(gx,sH,gz),iso(gx+sW,sH,gz),iso(gx+sW,sH,gz+sD),iso(gx,sH,gz+sD)].forEach((p,i)=>
-    i===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]));
-  ctx.closePath(); ctx.strokeStyle='#CC7700'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
-}
 
 // 캡 3D: 파렛 + 개별박스들 + 슬리브(선택) + 상하단 캡
-function draw3DCap(baseW, baseD, capH, capThick) {
-  if (!_layout) return;
-  const cvs = document.getElementById('cap3dCanvas');
-  if (!cvs) return;
-
-  let cW = cvs.clientWidth || 300;
-  const cH = Math.round(cW * 0.75);
-  cvs.width = cW; cvs.height = cH;
-
-  const ctx = cvs.getContext('2d');
-  const palW = _layout.pallet.w, palD = _layout.pallet.d, totalH = _layout.totalH;
-  const maxDim = Math.max(baseW, baseD, totalH + capH*2 + 30);
-  const sc = Math.min(cW, cH) * 0.32 / maxDim;
-  const ox = cW * 0.5, oy = cH * 0.78;
-
-  function iso(wx, wy, wz) {
-    return [ox + (wx - wz) * Math.cos(Math.PI/6) * sc,
-            oy - (wx + wz) * Math.sin(Math.PI/6) * sc - wy * sc];
-  }
-  function face(pts, fill, stroke, lw=0.5) {
-    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
-    pts.slice(1).forEach(p => ctx.lineTo(p[0], p[1]));
-    ctx.closePath();
-    ctx.fillStyle = fill; ctx.fill();
-    ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke();
-  }
-
-  ctx.clearRect(0, 0, cW, cH);
-  ctx.fillStyle = '#F0F0EE'; ctx.fillRect(0, 0, cW, cH);
-
-  const gx = (palW - baseW)/2, gz = (palD - baseD)/2;
-
-  // 파렛
-  const pH = palW * 0.04;
-  face([iso(0,-pH,0),iso(palW,-pH,0),iso(palW,-pH,palD),iso(0,-pH,palD)], '#CCC','#999');
-  face([iso(0,-pH,0),iso(palW,-pH,0),iso(palW,0,0),iso(0,0,0)], '#BBB','#999');
-  face([iso(palW,-pH,0),iso(palW,-pH,palD),iso(palW,0,palD),iso(palW,0,0)], '#AAA','#999');
-
-  // 박스들
-  const COLS=[['#F0820A','#D4700A','#C06000'],['#E06000','#C85000','#B04000']];
-  const boxes=[];
-  _layout.layers.forEach((lyr,li)=>{
-    lyr.placed.forEach(pb=>{
-      boxes.push({x:pb.x,y:li*_layout.box.h,z:pb.y,w:pb.bw,h:pb.bh2,d:pb.bh,ci:li%2});
-    });
-  });
-  boxes.sort((a,b)=>(b.z+b.d)-(a.z+a.d)||(b.x+b.w)-(a.x+a.w));
-  boxes.forEach(b=>{
-    const c=COLS[b.ci], x=b.x,y=b.y,z=b.z,w=b.w*0.97,h=b.h*0.97,d=b.d*0.97;
-    face([iso(x,y+h,z),iso(x+w,y+h,z),iso(x+w,y+h,z+d),iso(x,y+h,z+d)],c[0],'#88440055');
-    face([iso(x,y,z),iso(x+w,y,z),iso(x+w,y+h,z),iso(x,y+h,z)],c[1],'#88440055');
-    face([iso(x+w,y,z),iso(x+w,y,z+d),iso(x+w,y+h,z+d),iso(x+w,y+h,z)],c[2],'#88440055');
-  });
-
-  // 슬리브 (사용 시)
-  const useSl = document.getElementById('useSleeveChk').checked;
-  if (useSl) {
-    const slGap=10, slThk=parseFloat(document.getElementById('sleeveThick').value)||5;
-    const sW=baseW-(capGapConst=5)*2,sD=baseD-5*2,sH=totalH;
-    const sgx=gx+5,sgz=gz+5;
-    face([iso(sgx,0,sgz),iso(sgx+sW,0,sgz),iso(sgx+sW,sH,sgz),iso(sgx,sH,sgz)],'#F5CBA755','#CC7700',1);
-    face([iso(sgx+sW,0,sgz),iso(sgx+sW,0,sgz+sD),iso(sgx+sW,sH,sgz+sD),iso(sgx+sW,sH,sgz)],'#EAB78E55','#CC7700',1);
-  }
-
-  // 상단 캡 (하늘색 반투명)
-  const capY = totalH;
-  // 상판
-  face([iso(gx,capY,gz),iso(gx+baseW,capY,gz),iso(gx+baseW,capY,gz+baseD),iso(gx,capY,gz+baseD)],
-       '#ADD8E688','#2980B9',1.5);
-  face([iso(gx,capY,gz),iso(gx+baseW,capY,gz),iso(gx+baseW,capY+capThick,gz),iso(gx,capY+capThick,gz)],
-       '#9CC8D688','#2980B9',1);
-  face([iso(gx+baseW,capY,gz),iso(gx+baseW,capY,gz+baseD),iso(gx+baseW,capY+capThick,gz+baseD),iso(gx+baseW,capY+capThick,gz)],
-       '#8AB8C688','#2980B9',1);
-  // 날개
-  const wingH = capH;
-  face([iso(gx,capY,gz),iso(gx+baseW,capY,gz),iso(gx+baseW,capY-wingH,gz),iso(gx,capY-wingH,gz)],
-       '#ADD8E644','#2980B966',0.8);
-
-  // 하단 캡
-  face([iso(gx,-capThick,gz),iso(gx+baseW,-capThick,gz),iso(gx+baseW,-capThick,gz+baseD),iso(gx,-capThick,gz+baseD)],
-       '#ADD8E688','#2980B9',1.5);
-  face([iso(gx,-capThick,gz),iso(gx+baseW,-capThick,gz),iso(gx+baseW,0,gz),iso(gx,0,gz)],
-       '#9CC8D688','#2980B9',1);
-  face([iso(gx+baseW,-capThick,gz),iso(gx+baseW,-capThick,gz+baseD),iso(gx+baseW,0,gz+baseD),iso(gx+baseW,0,gz)],
-       '#8AB8C688','#2980B9',1);
-
-  // 치수 라벨
-  ctx.fillStyle='#666'; ctx.font=`${Math.max(9,cW*0.02)}px 'DM Mono',monospace`;
-  ctx.textAlign='center';
-  const lb = iso(baseW/2+gx, -capH, baseD+gz+baseD*0.1);
-  ctx.fillText(`캡: ${baseW.toFixed(0)}×${baseD.toFixed(0)}×${capH}mm`, lb[0], lb[1]);
-}
 
 
 // ══════════════════════════════════════════════════════
@@ -2020,21 +1855,7 @@ function renderCanvas(layerIdx) {
     // 화살표·숫자 표시 없음
   }
 
-  // 범례
-  const legY = ch - 18;
-  ctx.font = '10px sans-serif'; ctx.textBaseline = 'middle';
-  ctx.globalAlpha = 0.7;
-  ctx.fillStyle = clr; ctx.fillRect(8, legY - 5, 12, 10);
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = '#555'; ctx.textAlign = 'left';
-  ctx.fillText('외곽 (라벨)', 24, legY);
-  if (_layout.fillInner) {
-    ctx.globalAlpha = 0.4;
-    ctx.globalAlpha = 0.4; ctx.fillStyle = clr; ctx.fillRect(95, legY - 5, 12, 10); ctx.globalAlpha = 1;
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = '#555';
-    ctx.fillText('내부 박스', 111, legY);
-  }
+
 }
 
 // ══════════════════════════════════════════════════════
