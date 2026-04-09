@@ -618,15 +618,44 @@ function tryOrient(box, pallet, orient, layer, z, fillInner) {
 
   if (cols === 0 || rows === 0) return { cols, rows, placed, count: 0, spaceBox: null };
 
-  // ── 내부채우기 모드: 라벨 무관, 전체 그리드 채움 ──────────────────────
+  // ── 내부채우기 모드: 순수그리드 vs 외곽+EDGE+내부채우기 비교 ──────────
   if (fillInner) {
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        placed.push({ x: c*bw, y: r*bh, z, bw, bh, bh2: box.h,
-                      orient, face: 'INNER', row: r, col: c, layer });
-      }
+    const gridCount = cols * rows;
+
+    // 외곽+EDGE 수량 사전 계산
+    let nEdge = 0;
+    if (orient === 0 && cols >= 2) {
+      const ea = pallet.w - 2 * bw;
+      nEdge = ea > 0 ? fit(ea, altBw) : 0;
+    } else if (orient === 1 && rows >= 2) {
+      const ea = pallet.d - 2 * bh;
+      nEdge = ea > 0 ? fit(ea, altBh) : 0;
     }
-    return { cols, rows, placed, count: placed.length, spaceBox: null };
+    const outerMain = orient === 0 ? rows * 2 : cols * 2;
+    const edgeTotal = nEdge * 2;
+
+    // space box 영역 내 추가 박스 수
+    let spFill = 0;
+    if (orient === 0) {
+      const sw = nEdge * altBw, sh = bh * rows - altBh * 2;
+      if (sw > 0 && sh > 0) spFill = Math.max(fit(sw,bw)*fit(sh,bh), fit(sw,altBw)*fit(sh,altBh));
+    } else {
+      const sw = bw * cols - altBw * 2, sh = nEdge * altBh;
+      if (sw > 0 && sh > 0) spFill = Math.max(fit(sw,bw)*fit(sh,bh), fit(sw,altBw)*fit(sh,altBh));
+    }
+    const outerTotal = outerMain + edgeTotal + spFill;
+
+    if (gridCount >= outerTotal) {
+      // 순수 그리드가 더 많거나 같음 → 기존 방식
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          placed.push({ x: c*bw, y: r*bh, z, bw, bh, bh2: box.h,
+                        orient, face: 'INNER', row: r, col: c, layer });
+        }
+      }
+      return { cols, rows, placed, count: placed.length, spaceBox: null };
+    }
+    // 외곽+EDGE+내부채우기가 더 많음 → 아래 외곽 로직으로 진행 (face 유지)
   }
 
   // ── R열/T행 위치: L+EDGE+R 밀착 배치, 데드존은 센터링으로 외곽 분배 ──
@@ -705,12 +734,29 @@ function tryOrient(box, pallet, orient, layer, z, fillInner) {
   }
 
 
-  // ── 내부 박스 (fillInner=true일 때만) ────────────────────────────────────
+  // ── 내부채우기: space box 영역을 추가 박스로 채움 ──────────────────────
   if (fillInner) {
-    for (let r = 1; r < rows-1; r++) {
-      for (let c = 1; c < cols-1; c++) {
-        placed.push({ x: c*bw, y: r*bh, z, bw, bh, bh2: box.h,
-                      orient, face: 'INNER', row: r, col: c, layer });
+    let sx, sy, sw, sh;
+    if (orient === 0) {
+      sx = bw; sw = rX - bw; sy = altBh; sh = bh * rows - altBh * 2;
+    } else {
+      sx = altBw; sw = bw * cols - altBw * 2; sy = bh; sh = tY - bh;
+    }
+    if (sw > 0 && sh > 0) {
+      const ic1 = fit(sw, bw) * fit(sh, bh);
+      const ic2 = fit(sw, altBw) * fit(sh, altBh);
+      if (ic1 >= ic2) {
+        const nc = fit(sw, bw), nr = fit(sh, bh);
+        for (let r = 0; r < nr; r++)
+          for (let c = 0; c < nc; c++)
+            placed.push({ x: sx+c*bw, y: sy+r*bh, z, bw, bh, bh2: box.h,
+                          orient, face: 'INNER', row: r, col: c, layer });
+      } else {
+        const nc = fit(sw, altBw), nr = fit(sh, altBh);
+        for (let r = 0; r < nr; r++)
+          for (let c = 0; c < nc; c++)
+            placed.push({ x: sx+c*altBw, y: sy+r*altBh, z, bw: altBw, bh: altBh, bh2: box.h,
+                          orient: 1-orient, face: 'INNER', row: r, col: c, layer });
       }
     }
   }
@@ -739,10 +785,10 @@ function tryOrient(box, pallet, orient, layer, z, fillInner) {
 
 function bestOrient(box, pallet, fillInner) {
   if (fillInner) {
-    // 내부채우기: cols×rows 총 수량 최대 방향
-    const c0 = Math.floor(pallet.w / box.w) * Math.floor(pallet.d / box.l);
-    const c1 = Math.floor(pallet.w / box.l) * Math.floor(pallet.d / box.w);
-    return c0 >= c1 ? 0 : 1;
+    // 양방향 모두 tryOrient 실행 (내부에서 grid vs outer+EDGE+fill 자동 비교)
+    const r0 = tryOrient(box, pallet, 0, 1, 0, true);
+    const r1 = tryOrient(box, pallet, 1, 1, 0, true);
+    return r0.count >= r1.count ? 0 : 1;
   }
   // 외곽모드: 라벨 노출 수량 최대 방향
   const r0 = tryOrient(box, pallet, 0, 1, 0, false);
